@@ -42,7 +42,7 @@ class ComplexNet(nn.Module):
         xr,xi = complex_relu(xr,xi)
         xr,xi = complex_max_pool2d(xr,xi, 2, 2)
         
-        theta = torch.from_numpy(np.array(math.pi))
+        theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))
         rotated_r = torch.cos(theta)*xr - torch.sin(theta)*xi
         rotated_i = torch.sin(theta)*xr + torch.cos(theta)*xi
         
