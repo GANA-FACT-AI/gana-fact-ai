@@ -16,5 +16,3 @@ i = torch.view_as_complex(torch.tensor([0, 1], dtype=torch.float32))
 print(i)
 rotated = torch.exp(theta*i) * z
 print(rotated)
-wow = torch.matmul(z, z.T)
-print(wow)

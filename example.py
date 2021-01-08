@@ -1,3 +1,5 @@
+import math
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -21,18 +23,30 @@ class ComplexNet(nn.Module):
         self.bn  = ComplexBatchNorm2d(20)
         self.conv2 = ComplexConv2d(20, 50, 5, 1)
         self.fc1 = ComplexLinear(4*4*50, 500)
-        self.fc2 = ComplexLinear(500, 10)
+        self.fc2 = ComplexLinear(500, 200)
+        self.fc3 = nn.Linear(200, 10)
              
     def forward(self,x):
         xr = x
         # imaginary part to zero
         xi = torch.zeros(xr.shape, dtype = xr.dtype, device = xr.device)
+        '''
+        z = torch.view_as_complex(torch.stack((xr,xi), 1))
+        theta = 0.5 * math.pi
+        i = torch.view_as_complex(torch.tensor([0, 1], dtype=torch.float32))
+        rotated = torch.exp(theta*i) * z
+        rotated_r = rotated.real
+        rotated_i = rotated.imag
+        '''
         xr,xi = self.conv1(xr,xi)
         xr,xi = complex_relu(xr,xi)
         xr,xi = complex_max_pool2d(xr,xi, 2, 2)
         
+        theta = torch.from_numpy(np.array(math.pi))
+        rotated_r = torch.cos(theta)*xr - torch.sin(theta)*xi
+        rotated_i = torch.sin(theta)*xr + torch.cos(theta)*xi
         
-        xr,xi = self.bn(xr,xi)
+        xr,xi = self.bn(rotated_r,rotated_i)
         xr,xi = self.conv2(xr,xi)
         xr,xi = complex_relu(xr,xi)
         xr,xi = complex_max_pool2d(xr,xi, 2, 2)
@@ -42,8 +56,13 @@ class ComplexNet(nn.Module):
         xr,xi = self.fc1(xr,xi)
         xr,xi = complex_relu(xr,xi)
         xr,xi = self.fc2(xr,xi)
+
+        x_orig_r = torch.cos(-theta)*xr - torch.sin(-theta)*xi
+
+        x = self.fc3(x_orig_r)
         # take the absolute value as output
-        x = torch.sqrt(torch.pow(xr,2)+torch.pow(xi,2))
+        #x = torch.sqrt(torch.pow(xr,2)+torch.pow(xi,2))
+
         return F.log_softmax(x, dim=1)
     
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -70,10 +89,6 @@ def train(model, device, train_loader, optimizer, epoch):
 
 # Run training on 50 epochs
 for epoch in range(50):
-    real = torch.tensor([1, 2], dtype=torch.float32)
-    imag = torch.tensor([3, 4], dtype=torch.float32)
-    z = torch.view_as_complex(real)
-    print(z)
 
 
     train(model, device, train_loader, optimizer, epoch)
