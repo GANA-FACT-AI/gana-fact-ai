@@ -28,25 +28,19 @@ class ComplexNet(nn.Module):
         self.fc1 = ComplexLinear(4*4*50, 500)
         self.fc2 = ComplexLinear(500, 200)
         self.fc3 = nn.Linear(200, 10)
-        self.discriminator = Discriminator()
              
     def forward(self,xr,xi):
-        '''
-        xr = x
-        # imaginary part to zero
-        xi = torch.zeros(xr.shape, dtype = xr.dtype, device = xr.device)
-        '''
-
         # Encoder
         xr,xi = self.conv1(xr,xi)
         xr,xi = complex_relu(xr,xi)
         xr,xi = complex_max_pool2d(xr,xi, 2, 2)
         a = xr
+        self.discriminator = Discriminator(a.shape)
         
         theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))
         rotated_r = torch.cos(theta)*xr - torch.sin(theta)*xi
         rotated_i = torch.sin(theta)*xr + torch.cos(theta)*xi
-        
+
         # Processing Module
         
         xr,xi = self.bn(rotated_r,rotated_i)
@@ -98,6 +92,7 @@ def train(model, device, train_loader, train_iterator, optimizer, epoch):
         loss = F.nll_loss(output, target)
         total_loss = gan_loss + loss
         total_loss.backward()
+        model.discriminator._modules['score'].weight.data = model.discriminator._modules['score'].weight.data.clamp(-0.01,0.01)
 
         optimizer.step()
         if batch_idx % 10 == 0:
