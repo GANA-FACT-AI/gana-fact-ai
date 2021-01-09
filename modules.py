@@ -4,12 +4,14 @@ import numpy as np
 
 class Discriminator(nn.Module):
 
-    def __init__(self):
+    def __init__(self, size):
         super(Discriminator, self).__init__()
-        self.score = nn.Linear(2880, 2880) # TODO: Change from hardcoded to adaptable to encoder output
+        self.batch_size = size[0]
+        self.img_size = size[1]*size[2]*size[3]
+        self.score = nn.Linear(self.img_size, self.img_size)
 
     def forward(self, a):
-        a = a.reshape((a.shape[0], a.shape[1]*a.shape[2]*a.shape[3]))
+        a = a.reshape((self.batch_size, self.img_size))
         score = self.score(a)
         score = torch.mean(a, dim=1)
         return score
