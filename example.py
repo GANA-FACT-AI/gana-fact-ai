@@ -9,7 +9,7 @@ from complexFunctions import complex_relu, complex_max_pool2d
 from modules import *
 
 batch_size = 64
-k = 2
+k = 8
 trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
 train_set = datasets.MNIST('../data', train=True, transform=trans, download=True)
 test_set = datasets.MNIST('../data', train=False, transform=trans, download=True)
@@ -83,11 +83,12 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 model = ComplexNet().to(device)
 optimizer = torch.optim.RMSprop(model.parameters(), lr=0.00005)
 
-def train(model, device, train_loader, optimizer, epoch):
+def train(model, device, train_loader, train_iterator, optimizer, epoch):
     model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data_real, target = data.to(device), target.to(device)
-        data_fake, _ = train_iterator.next() 
+    for batch_idx, (data_real, target) in enumerate(train_loader):
+        data_real, target = data_real.to(device), target.to(device)
+        data_fake, _ = train_iterator.next()
+        data_fake = data_fake.to(device)
         optimizer.zero_grad()
         output, real_score, fake_score = model(data_real, data_fake)
         real_wasser_loss = torch.mean(real_score)
@@ -100,10 +101,9 @@ def train(model, device, train_loader, optimizer, epoch):
 
         optimizer.step()
         if batch_idx % 10 == 0:
-            print('Gan Loss: ', gan_loss)
             print('Train Epoch: {:3} [{:6}/{:6} ({:3.0f}%)]\tLoss: {:.6f}'.format(
                 epoch,
-                batch_idx * len(data), 
+                batch_idx * len(data_real), 
                 len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), 
                 loss.item())
@@ -111,6 +111,5 @@ def train(model, device, train_loader, optimizer, epoch):
 
 # Run training on 50 epochs
 for epoch in range(50):
-
-
-    train(model, device, train_loader, optimizer, epoch)
+    train_iterator = iter(train_loader)
+    train(model, device, train_loader, train_iterator, optimizer, epoch)
