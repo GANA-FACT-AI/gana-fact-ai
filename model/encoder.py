@@ -1,14 +1,14 @@
 import torch.nn as nn
-from complexLayers import ComplexConv2d
-from complexFunctions import complex_relu, complex_max_pool2d
 
 class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = ComplexConv2d(1, 20, 5, 1)
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.relu = nn.ReLU()
+        self.maxpool2d = nn.MaxPool2d(2)
 
-    def forward(self, xr, xi):
-        xr,xi = self.conv1(xr,xi)
-        xr,xi = complex_relu(xr,xi)
-        xr,xi = complex_max_pool2d(xr,xi, 2, 2)
-        return xr, xi
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.maxpool2d(x)
+        return x

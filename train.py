@@ -10,7 +10,7 @@ from model.privacymodel import PrivacyModel
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, test_loader = load_data(args.batch_size)
+    train_loader, test_loader = load_data(args.batch_size, args.num_workers)
     train_iter = iter(train_loader)
     # raise NotImplementedError()
 
@@ -28,13 +28,13 @@ def train(args):
                          )
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel()
+    model = PrivacyModel(train_iter)
 
     trainer.fit(model, train_loader)
 
     # Testing
-    model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+    #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -58,7 +58,7 @@ if __name__ == '__main__':
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
-    parser.add_argument('--num_workers', default=4, type=int,
+    parser.add_argument('--num_workers', default=12, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
     parser.add_argument('--log_dir', default='logs', type=str,
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument('--progress_bar', action='store_true',
                         help=('Use a progress bar indicator for interactive experimentation. '
                               'Not to be used in conjuction with SLURM jobs'))
-    parser.add_argument('--debug', default=True, type=float,
+    parser.add_argument('--debug', default=False, type=float,
                         help='Shorten epochs and epoch lengths for quick debugging')
 
     args = parser.parse_args()

@@ -2,10 +2,10 @@ import torch
 from torchvision import datasets, transforms
 
 
-def load_data(batch_size):
+def load_data(batch_size, num_workers):
     trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
     train_set = datasets.MNIST('../data', train=True, transform=trans, download=True)
     test_set = datasets.MNIST('../data', train=False, transform=trans, download=True)
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size= batch_size, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(test_set, batch_size= batch_size, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     return train_loader, test_loader
