@@ -22,7 +22,9 @@ class ComplexNet(nn.Module):
     
     def __init__(self):
         super(ComplexNet, self).__init__()
-        self.conv1 = ComplexConv2d(1, 20, 5, 1)
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.maxpool2d = nn.MaxPool2d(2)
+        self.relu = nn.ReLU()
         self.bn  = ComplexBatchNorm2d(20)
         self.conv2 = ComplexConv2d(20, 50, 5, 1)
         self.fc1 = ComplexLinear(4*4*50, 500)
@@ -31,9 +33,12 @@ class ComplexNet(nn.Module):
              
     def forward(self,xr,xi):
         # Encoder
-        xr,xi = self.conv1(xr,xi)
-        xr,xi = complex_relu(xr,xi)
-        xr,xi = complex_max_pool2d(xr,xi, 2, 2)
+        xr = self.conv1(xr)
+        xr = self.relu(xr)
+        xr = self.maxpool2d(xr)
+        xi = self.conv1(xi)
+        xi = self.relu(xi)
+        xi = self.maxpool2d(xi)
         a = xr
         self.discriminator = Discriminator(a.shape)
         
@@ -86,7 +91,7 @@ def train(model, device, train_loader, train_iterator, optimizer, epoch):
         output, real_score, fake_score = model(data_real, data_fake)
         real_wasser_loss = torch.mean(real_score)
         fake_wasser_loss = torch.mean(fake_score * -1)
-        gan_loss = real_wasser_loss - fake_wasser_loss
+        gan_loss = real_wasser_loss + fake_wasser_loss
 
         loss = F.nll_loss(output, target)
         total_loss = gan_loss + loss
