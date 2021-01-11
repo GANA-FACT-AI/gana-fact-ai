@@ -1,10 +1,14 @@
 import pytorch_lightning as pl
 
+from model.critique import Critique
+from model.generator import Generator
+
 
 class WGAN(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        pass
+        self.generator = Generator()
+        self.critique = Critique()
 
     def forward(self):
         pass
