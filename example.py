@@ -42,7 +42,6 @@ class ComplexNet(nn.Module):
         rotated_i = torch.sin(theta)*xr + torch.cos(theta)*xi
 
         # Processing Module
-        
         xr,xi = self.bn(rotated_r,rotated_i)
         xr,xi = self.conv2(xr,xi)
         xr,xi = complex_relu(xr,xi)
