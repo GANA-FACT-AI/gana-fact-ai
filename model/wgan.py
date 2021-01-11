@@ -4,11 +4,11 @@ from model.critique import Critique
 from model.generator import Generator
 
 
-class WGAN(pl.LightningModule):
+class WGAN(pl.LightningModule):  # TODO: Nested Lightning Modules == not a good idea
     def __init__(self, k):
         super().__init__()
-        self.generator = Generator(12)
-        self.critique = Critique(2880, k)
+        self.generator = Generator(12)  # TODO: remove magic numbers
+        self.critique = Critique(2880, k)  # TODO: remove magic numbers
 
     def forward(self, a, b, theta):
         xr, xi = self.generator(a, b, theta)
@@ -16,7 +16,7 @@ class WGAN(pl.LightningModule):
         return xr, xi
 
     def training_step(self, a, b, theta, *args, **kwargs):
-        xr, xi = self.forward(a, b, theta)
+        xr, xi = self(a, b, theta)
         real_score, fake_score = self.critique(xr, xi, a)
         critique_loss = torch.mean(real_score) - torch.mean(fake_score)
         generator_loss = -torch.mean(fake_score)
