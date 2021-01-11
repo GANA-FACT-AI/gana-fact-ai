@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 class Generator(nn.Module):
     def __init__(self, size):
         super().__init__()

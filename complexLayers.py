@@ -16,35 +16,39 @@ from torch.nn import ConvTranspose2d
 from complexFunctions import complex_relu, complex_max_pool2d
 from complexFunctions import complex_dropout, complex_dropout2d
 
+
 class ComplexSequential(Sequential):
     def forward(self, input_r, input_t):
         for module in self._modules.values():
             input_r, input_t = module(input_r, input_t)
         return input_r, input_t
 
+
 class ComplexDropout(Module):
-    def __init__(self,p=0.5, inplace=False):
-        super(ComplexDropout,self).__init__()
+    def __init__(self, p=0.5, inplace=False):
+        super(ComplexDropout, self).__init__()
         self.p = p
         self.inplace = inplace
 
-    def forward(self,input_r,input_i):
-        return complex_dropout(input_r,input_i,self.p,self.inplace)
+    def forward(self, input_r, input_i):
+        return complex_dropout(input_r, input_i, self.p, self.inplace)
+
 
 class ComplexDropout2d(Module):
-    def __init__(self,p=0.5, inplace=False):
-        super(ComplexDropout2d,self).__init__()
+    def __init__(self, p=0.5, inplace=False):
+        super(ComplexDropout2d, self).__init__()
         self.p = p
         self.inplace = inplace
 
-    def forward(self,input_r,input_i):
-        return complex_dropout2d(input_r,input_i,self.p,self.inplace)
+    def forward(self, input_r, input_i):
+        return complex_dropout2d(input_r, input_i, self.p, self.inplace)
+
 
 class ComplexMaxPool2d(Module):
 
-    def __init__(self,kernel_size, stride= None, padding = 0,
-                 dilation = 1, return_indices = False, ceil_mode = False):
-        super(ComplexMaxPool2d,self).__init__()
+    def __init__(self, kernel_size, stride=None, padding=0,
+                 dilation=1, return_indices=False, ceil_mode=False):
+        super(ComplexMaxPool2d, self).__init__()
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
@@ -52,20 +56,28 @@ class ComplexMaxPool2d(Module):
         self.ceil_mode = ceil_mode
         self.return_indices = return_indices
 
-    def forward(self,input_r,input_i):
-        return complex_max_pool2d(input_r,input_i,kernel_size = self.kernel_size,
-                                stride = self.stride, padding = self.padding,
-                                dilation = self.dilation, ceil_mode = self.ceil_mode,
-                                return_indices = self.return_indices)
+    def forward(self, input_r, input_i):
+        return complex_max_pool2d(
+            input_r,
+            input_i,
+            kernel_size=self.kernel_size,
+            stride=self.stride,
+            padding=self.padding,
+            dilation=self.dilation,
+            ceil_mode=self.ceil_mode,
+            return_indices=self.return_indices
+        )
+
 
 class ComplexReLU(Module):
 
-     def forward(self,input_r,input_i):
-         return complex_relu(input_r,input_i)
+    def forward(self, input_r, input_i):
+        return complex_relu(input_r, input_i)
+
 
 class ComplexConvTranspose2d(Module):
 
-    def __init__(self,in_channels, out_channels, kernel_size, stride=1, padding=0,
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0,
                  output_padding=0, groups=1, bias=True, dilation=1, padding_mode='zeros'):
 
         super(ComplexConvTranspose2d, self).__init__()
@@ -75,10 +87,10 @@ class ComplexConvTranspose2d(Module):
         self.conv_tran_i = ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding,
                                        output_padding, groups, bias, dilation, padding_mode)
 
-
-    def forward(self,input_r,input_i):
+    def forward(self, input_r, input_i):
         return self.conv_tran_r(input_r)-self.conv_tran_i(input_i), \
                self.conv_tran_r(input_i)+self.conv_tran_i(input_r)
+
 
 class ComplexConv2d(Module):
 
@@ -101,22 +113,24 @@ class ComplexLinear(Module):
         self.fc_r = Linear(in_features, out_features)
         self.fc_i = Linear(in_features, out_features)
 
-    def forward(self,input_r, input_i):
+    def forward(self, input_r, input_i):
         return self.fc_r(input_r)-self.fc_i(input_i), \
                self.fc_r(input_i)+self.fc_i(input_r)
+
 
 class NaiveComplexBatchNorm1d(Module):
     '''
     Naive approach to complex batch norm, perform batch norm independently on real and imaginary part.
     '''
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, \
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
         super(NaiveComplexBatchNorm1d, self).__init__()
         self.bn_r = BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
         self.bn_i = BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
 
-    def forward(self,input_r, input_i):
+    def forward(self, input_r, input_i):
         return self.bn_r(input_r), self.bn_i(input_i)
+
 
 class NaiveComplexBatchNorm2d(Module):
     '''
@@ -131,11 +145,12 @@ class NaiveComplexBatchNorm2d(Module):
     def forward(self,input_r, input_i):
         return self.bn_r(input_r), self.bn_i(input_i)
 
+
 class NaiveComplexBatchNorm1d(Module):
     '''
     Naive approach to complex batch norm, perform batch norm independently on real and imaginary part.
     '''
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, \
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
         super(NaiveComplexBatchNorm1d, self).__init__()
         self.bn_r = BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
@@ -143,6 +158,7 @@ class NaiveComplexBatchNorm1d(Module):
 
     def forward(self,input_r, input_i):
         return self.bn_r(input_r), self.bn_i(input_i)
+
 
 class _ComplexBatchNorm(Module):
 
@@ -187,13 +203,13 @@ class _ComplexBatchNorm(Module):
             init.zeros_(self.weight[:,2])
             init.zeros_(self.bias)
 
+
 class ComplexBatchNorm2d(_ComplexBatchNorm):
 
     def forward(self, input_r, input_i):
         assert(input_r.size() == input_i.size())
         assert(len(input_r.shape) == 4)
         exponential_average_factor = 0.0
-
 
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None:
@@ -203,13 +219,11 @@ class ComplexBatchNorm2d(_ComplexBatchNorm):
                 else:  # use exponential moving average
                     exponential_average_factor = self.momentum
 
-
         if self.training:
 
             # calculate mean of real and imaginary part
             mean_r = input_r.mean([0, 2, 3])
             mean_i = input_i.mean([0, 2, 3])
-
 
             mean = torch.stack((mean_r,mean_i),dim=1)
 
@@ -239,8 +253,8 @@ class ComplexBatchNorm2d(_ComplexBatchNorm):
 
         else:
             mean = self.running_mean
-            Crr = self.running_covar[:,0]+self.eps
-            Cii = self.running_covar[:,1]+self.eps
+            Crr = self.running_covar[:,0] + self.eps
+            Cii = self.running_covar[:,1] + self.eps
             Cri = self.running_covar[:,2]#+self.eps
 
             input_r = input_r-mean[None,:,0,None,None]
@@ -275,7 +289,6 @@ class ComplexBatchNorm1d(_ComplexBatchNorm):
         #self._check_input_dim(input)
 
         exponential_average_factor = 0.0
-
 
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None:
