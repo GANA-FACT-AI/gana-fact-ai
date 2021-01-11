@@ -4,12 +4,13 @@ import os
 import torch
 import pytorch_lightning as pl
 
-from model import Model
+from data.CelebA import load_data
+from model.privacymodel import PrivacyModel
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, val_loader, test_loader = None, None, None
+    train_loader, val_loader, test_loader = load_data(args.batch_size)
     # raise NotImplementedError()
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
@@ -26,7 +27,7 @@ def train(args):
                          )
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = Model()
+    model = PrivacyModel()
 
     trainer.fit(model, train_loader, val_loader)
 
