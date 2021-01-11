@@ -7,7 +7,7 @@ class Discriminator(nn.Module):
     def __init__(self, size):
         super(Discriminator, self).__init__()
         self.batch_size = size[0]
-        self.img_size = size[1]*size[2]*size[3]
+        self.img_size = size[1] * size[2] * size[3]
         self.score = nn.Linear(self.img_size, self.img_size)
 
     def forward(self, a):
