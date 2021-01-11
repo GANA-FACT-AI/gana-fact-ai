@@ -91,7 +91,7 @@ def train(model, device, train_loader, train_iterator, optimizer, epoch):
         output, real_score, fake_score = model(data_real, data_fake)
         real_wasser_loss = torch.mean(real_score)
         fake_wasser_loss = torch.mean(fake_score * -1)
-        gan_loss = real_wasser_loss - fake_wasser_loss
+        gan_loss = real_wasser_loss + fake_wasser_loss
 
         loss = F.nll_loss(output, target)
         total_loss = gan_loss + loss

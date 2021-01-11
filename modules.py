@@ -13,5 +13,5 @@ class Discriminator(nn.Module):
     def forward(self, a):
         a = a.reshape((self.batch_size, self.img_size))
         score = self.score(a)
-        score = torch.mean(a, dim=1)
+        score = torch.mean(score, dim=1)
         return score
