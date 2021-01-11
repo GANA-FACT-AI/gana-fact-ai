@@ -14,15 +14,15 @@ class InvariantReLU(Module):
 	def forward(self,input_r,input_i):
 		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2))
 		maxpick = torch.max(norm, self.c * torch.ones(norm.shape))
-		print('maxpick', maxpick)
+		# print('maxpick', maxpick)
 		return norm/maxpick  * input_r , norm/maxpick * input_i
 
 class InvariantBatchNorm(Module):
 	def __init__(self,):
 		super(InvariantBatchNorm, self).__init__()
 	def forward(self,input_r,input_i):
-		b_avg = torch.sqrt(torch.mean(input_r.pow(2) + input_i.pow(2), axis = 0))
-		return input_r/b_avg , input_i/b_avg, b_avg 
+		b_avg = torch.sqrt(torch.mean(input_r.pow(2) + input_i.pow(2), axis = 0))+1e-8
+		return input_r/b_avg , input_i/b_avg
 
 def invmaxpool2d(input_r, input_i, bn_func, kernel_size, stride=None, padding=0,
                                 dilation=1, ceil_mode=False):
@@ -30,7 +30,7 @@ def invmaxpool2d(input_r, input_i, bn_func, kernel_size, stride=None, padding=0,
 	Rotation indifferent maxpool on 2d grid
 	"""
 	# 
-	real_norm, imag_norm, b_avg = bn_func(input_r, input_i)
+	real_norm, imag_norm = bn_func(input_r, input_i)
 
 	# real_norm, imag_norm = input_r, input_i
 

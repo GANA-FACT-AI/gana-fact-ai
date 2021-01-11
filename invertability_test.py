@@ -6,7 +6,11 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms
 from complexLayers import ComplexBatchNorm2d, ComplexConv2d, ComplexLinear
 from complexFunctions import complex_relu, complex_max_pool2d
-from modules import *
+
+from torch.nn import Conv2d, Linear, BatchNorm1d, BatchNorm2d
+from torch.nn.functional import relu, max_pool2d, dropout, dropout2d
+
+from complexModules import *
 
 batch_size = 64
 k = 8
@@ -18,39 +22,37 @@ train_loader = torch.utils.data.DataLoader(train_set, batch_size= batch_size, sh
 train_iterator = iter(train_loader)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size= batch_size, shuffle=True)
 
-class ComplexNet(nn.Module):
-    
+
+def rotate(xr,xi,theta):
+    rotated_r = torch.cos(theta)*xr - torch.sin(theta)*xi
+    rotated_i = torch.sin(theta)*xr + torch.cos(theta)*xi
+    return rotated_r, rotated_i
+
+class Encoder(nn.Module):
     def __init__(self):
-        super(ComplexNet, self).__init__()
-        self.relu = InvariantReLU()
-        self.bn   = InvariantBatchNorm()
+        super(Encoder, self).__init__()
+        self.conv1 = Conv2d(1, 20, 5, 1)
+    def forward(self, x):
+        x  = self.conv1(x)
+        x = relu(x)
+        x = max_pool2d(x, 2, 2)
+        return x
 
-        self.conv1 = ComplexConv2d(1, 20, 5, 1)
-        self.conv2 = ComplexConv2d(20, 50, 5, 1)
+class ProcessingModule(nn.Module):
+    def __init__(self):
+        super(ProcessingModule, self).__init__()
+        self.complex_relu = InvariantReLU()
+        self.bn = InvariantBatchNorm()
 
+        self.complex_conv2 = ComplexConv2d(20, 50, 5, 1)
         self.fc1 = ComplexLinear(4*4*50, 500)
         self.fc2 = ComplexLinear(500, 200)
-        self.fc3 = nn.Linear(200, 10)
-             
-    def forward(self,xr,xi):
-        # Encoder
-        xr,xi = self.conv1(xr,xi)
-        xr,xi = self.relu(xr,xi)
-        xr,xi = complex_max_pool2d(xr,xi, 2, 2)
-        a = xr
-        self.discriminator = Discriminator(a.shape)
-        
-# rotation
-        theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))
-        rotated_r = torch.cos(theta)*xr - torch.sin(theta)*xi
-        rotated_i = torch.sin(theta)*xr + torch.cos(theta)*xi
 
-        # Processing Module
-        
-        xr,xi = self.bn(rotated_r,rotated_i)
-        xr,xi = self.conv2(xr,xi)
+    def forward(self, xr, xi):
+        xr,xi = self.bn(xr,xi)
+        xr,xi = self.complex_conv2(xr,xi)
         xr,xi = complex_relu(xr,xi)
-        xr,xi = complex_max_pool2d(xr,xi, 2, 2)
+        xr,xi = invmaxpool2d(xr,xi, self.bn, 2, 2)
         
         xr = xr.view(-1, 4*4*50)
         xi = xi.view(-1, 4*4*50)
@@ -58,57 +60,104 @@ class ComplexNet(nn.Module):
         xr,xi = complex_relu(xr,xi)
         xr,xi = self.fc2(xr,xi)
 
-        # Decoder
-        x_orig_r = torch.cos(-theta)*xr - torch.sin(-theta)*xi
+        return xr, xi
 
-        x = self.fc3(x_orig_r)
+class Decoder(nn.Module):
+    def __init__(self):
+        super(Decoder, self).__init__()
+        self.fc3 = nn.Linear(200, 10)
 
-        # Discriminator
-        real_score = self.discriminator(a)
-        fake_scores = []
-        for i in range(k-1):
-            theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))
-            a_prime = torch.cos(-theta)*rotated_r - torch.sin(-theta)*rotated_i
-            fake_scores.append(self.discriminator(a_prime))
-        fake_scores = torch.stack(fake_scores, 0)
+    def forward(self, x):
+        x = self.fc3(x)
+        return x
 
-        # take the absolute value as output
-        #x = torch.sqrt(torch.pow(xr,2)+torch.pow(xi,2))
+class ComplexNet(nn.Module):
+    
+    def __init__(self):
+        super(ComplexNet, self).__init__()
+        self.encoder = Encoder()
+        self.procmod = ProcessingModule()
+        self.decoder = Decoder()
 
-        return F.log_softmax(x, dim=1), real_score, torch.mean(fake_scores, dim=0)
+    def forward(self, x, theta):
+
+        x = self.encoder(x)
+#from real to complex
+        xr = x
+        xi = torch.zeros(xr.shape, dtype = xr.dtype, device = xr.device)
+#rotation
+        # theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))
+        xr,xi = rotate(xr, xi, theta)
+        xr,xi = self.procmod(xr,xi)
+#inverse rotation
+        x_orig, _  = rotate(xr, xi, - theta)
+#decoding
+        x     = self.decoder(x_orig)
+        return F.log_softmax(x, dim=1)
+
+    def rotation_pass(self, x, theta):
+
+        x = self.encoder(x)
+#from real to complex
+        xr = x
+        xi = torch.zeros(xr.shape, dtype = xr.dtype, device = xr.device)
+
+#rotation
+        xr,xi = rotate(xr, xi, theta)
+
+        xr,xi = self.procmod(xr,xi)
+#inverse rotation
+        x_orig, _  = rotate(xr, xi, - theta)
+
+        return x_orig
+
+    def no_rotation_pass(self,x):
+        x = self.encoder(x)
+#from real to complex
+        xr = x
+        xi = torch.zeros(xr.shape, dtype = xr.dtype, device = xr.device)
+
+#imaginary is just set to 0
+        xr,xi = self.procmod(xr,xi)
+        return xr
+
     
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 model = ComplexNet().to(device)
-optimizer = torch.optim.RMSprop(model.parameters(), lr=0.00005)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
-def train(model, device, train_loader, train_iterator, optimizer, epoch):
+def train(model, device, train_loader, optimizer, epoch):
     model.train()
-    for batch_idx, (data_real, target) in enumerate(train_loader):
-        data_real, target = data_real.to(device), target.to(device)
-        data_fake, _ = train_iterator.next()
-        data_fake = data_fake.to(device)
+
+    theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))
+    print('Theta', theta)
+
+
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        output, real_score, fake_score = model(data_real, data_fake)
-        real_wasser_loss = torch.mean(real_score)
-        fake_wasser_loss = torch.mean(fake_score * -1)
-        gan_loss = real_wasser_loss - fake_wasser_loss
 
+        output = model(data, theta)
+        rotation_output = model.rotation_pass(data, theta)
+        no_rotation_output = model.no_rotation_pass(data)
+
+        print(rotation_output.mean())
+        print(no_rotation_output.mean())
+        # print(output.shape)
         loss = F.nll_loss(output, target)
-        total_loss = gan_loss + loss
-        total_loss.backward()
-        model.discriminator._modules['score'].weight.data = model.discriminator._modules['score'].weight.data.clamp(-0.01,0.01)
-
+        loss.backward()
         optimizer.step()
         if batch_idx % 10 == 0:
             print('Train Epoch: {:3} [{:6}/{:6} ({:3.0f}%)]\tLoss: {:.6f}'.format(
                 epoch,
-                batch_idx * len(data_real), 
+                batch_idx * len(data), 
                 len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), 
                 loss.item())
             )
+            print('rotation', torch.mean(rotation_output - no_rotation_output))
 
-# Run training on 50 epochs
-for epoch in range(50):
-    train_iterator = iter(train_loader)
-    train(model, device, train_loader, train_iterator, optimizer, epoch)
+# Run training on 1 epochs
+for epoch in range(1):
+
+    model = train(model, device, train_loader, optimizer, epoch)
