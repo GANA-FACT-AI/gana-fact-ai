@@ -8,7 +8,7 @@ class WGAN(pl.LightningModule):
     def __init__(self):
         super().__init__()
         self.generator = Generator()
-        self.critique = Critique()
+        self.critique = Critique(2880)
 
     def forward(self):
         pass
