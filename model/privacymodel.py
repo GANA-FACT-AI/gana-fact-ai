@@ -62,7 +62,7 @@ class PrivacyModel(pl.LightningModule):
         # Encoder
         a = self.encoder(x)
         b = self.encoder(I_prime)
-        thetas = torch.tensor(x.shape[0] * [math.pi]) #torch.rand(x.shape[0]).to(device) * 2
+        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # GAN
@@ -79,16 +79,17 @@ class PrivacyModel(pl.LightningModule):
             x = self.decoder(x_orig_r)
             output = F.log_softmax(x, dim=1)
 
-            #print('train_acc', self.accuracy(output, target))
-
             # Loss
             loss = F.nll_loss(output, target)
-            #print("Generator Loss: ", gen_loss)
             total_loss = loss + gen_loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
-            #print("Total Loss: ", total_loss)  # TODO: move to logger
+            if batch_idx % 50 == 0:
+                print("Generator Loss: ", gen_loss)
+                print("Total Loss: ", total_loss)  # TODO: move to logger
+                print('Train Acc', self.accuracy(output, target))
             return total_loss
         else:
-            #print("Critique Loss: ", crit_loss)  # TODO: move to logger
+            if batch_idx % 50 == 0:
+                print("Critique Loss: ", crit_loss)  # TODO: move to logger
             return crit_loss
 
     def configure_optimizers(self):
