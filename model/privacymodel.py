@@ -13,7 +13,6 @@ from model.wgan import WGAN
 class PrivacyModel(pl.LightningModule):
     def __init__(self, train_loader, *args):
         super().__init__()
-        #self.save_hyperparameters()
         self.wgan = WGAN(k=8)
         self.encoder = Encoder()
         self.decoder = Decoder()
