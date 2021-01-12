@@ -10,6 +10,6 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x = self.relu(x)
+        #x = self.relu(x)
         x = self.maxpool2d(x)
         return x
