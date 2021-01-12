@@ -62,7 +62,7 @@ class PrivacyModel(pl.LightningModule):
         # Encoder
         a = self.encoder(x)
         b = self.encoder(I_prime)
-        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
+        thetas = torch.tensor(x.shape[0] * [math.pi]) #torch.rand(x.shape[0]).to(device) * 2
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # GAN
@@ -83,7 +83,7 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             loss = F.nll_loss(output, target)
-            #print(gen_loss)
+            #print("Generator Loss: ", gen_loss)
             total_loss = loss + gen_loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
             #print("Total Loss: ", total_loss)  # TODO: move to logger
             return total_loss
@@ -94,7 +94,10 @@ class PrivacyModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer_gen = torch.optim.RMSprop(list(self.encoder.parameters()) + list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)
         optimizer_crit = torch.optim.RMSprop(self.wgan.critique.parameters(), lr=0.00005)
-        return [optimizer_gen, optimizer_crit]
+        return (
+            {'optimizer': optimizer_gen, 'frequency': 1},
+            {'optimizer': optimizer_crit, 'frequency': 5}
+        )
 
     def validation_step(self):
         pass
