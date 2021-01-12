@@ -30,22 +30,24 @@ class PrivacyModel(pl.LightningModule):
         return x
 
     def forward(self, batch):
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
         x = batch[0]  # TODO: use whole batch
         I_prime, _ = self.get_random_batch()
 
         # Encoder
         a = self.encoder(x)
         b = self.encoder(I_prime)  # TODO: maybe feed also through GAN
-        theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))  # TODO: Why use numpy? Use Torch instead!
+        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
+        thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # GAN
-        xr, xi = self.wgan.generate(a, b, theta)
+        xr, xi = self.wgan.generate(a, b, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
 
         # Decoder
-        x_orig_r = torch.cos(-theta)*xr - torch.sin(-theta)*xi  # TODO: Move this code into the decoder
+        x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move this code into the decoder
         x = self.decoder(x_orig_r)
         output = F.log_softmax(x, dim=1)
 
@@ -64,26 +66,26 @@ class PrivacyModel(pl.LightningModule):
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # GAN
-        xr, xi, crit_loss, gen_loss = self.wgan.forward(a, b, thetas)
+        _, _, crit_loss, gen_loss = self.wgan.forward(a, b, thetas)
 
         if optimizer_idx == 0:
             # Processing Unit
-            xr, xi = self.processing_unit(xr, xi)
+            xr, xi = self.processing_unit(a, b)
 
             # Decoder
-            x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move to decoder
-            x = self.decoder(x_orig_r)
+            #x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move to decoder
+            x = self.decoder(xr)
             output = F.log_softmax(x, dim=1)
 
             print('train_acc', self.accuracy(output, target))
 
             # Loss
             loss = F.nll_loss(output, target)
-            total_loss = loss + gen_loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
+            total_loss = loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
             print("Total Loss: ", total_loss)  # TODO: move to logger
             return total_loss
-        elif optimizer_idx == 1:
-            print("Critique Loss: ", crit_loss)  # TODO: move to logger
+        else:
+            #print("Critique Loss: ", crit_loss)  # TODO: move to logger
             return crit_loss
 
     def configure_optimizers(self):
