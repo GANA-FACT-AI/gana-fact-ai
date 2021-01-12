@@ -4,7 +4,7 @@ import math
 import torch.nn as nn
 
 
-class Critique(nn.Module):
+class Critic(nn.Module):
     def __init__(self, size, k):
         super().__init__()
         self.score = nn.Linear(size, 1)

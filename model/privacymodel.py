@@ -5,7 +5,6 @@ import pytorch_lightning as pl
 import torch.nn.functional as F
 
 from model.decoder import Decoder
-from model.encoder import Encoder
 from model.processing_unit import ProcessingUnit
 from model.wgan import WGAN
 
@@ -14,7 +13,6 @@ class PrivacyModel(pl.LightningModule):
     def __init__(self, train_loader, *args):
         super().__init__()
         self.wgan = WGAN(k=8)
-        self.encoder = Encoder()
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
         self.train_loader = train_loader
@@ -31,25 +29,21 @@ class PrivacyModel(pl.LightningModule):
 
     def forward(self, batch):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        x = batch[0]  # TODO: use whole batch
+        x, _ = batch
         I_prime, _ = self.get_random_batch()
+        I_prime = I_prime.to(device)
 
-        # Encoder
-        a = self.encoder(x)
-        b = self.encoder(I_prime)  # TODO: maybe feed also through GAN
         thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
-        # GAN
-        xr, xi = self.wgan.generate(a, b, thetas)
+        # Encoder/GAN
+        xr, xi = self.wgan.generate(x, I_prime, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
 
         # Decoder
-        x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move this code into the decoder
-        x = self.decoder(x_orig_r)
-        output = F.log_softmax(x, dim=1)
+        output = self.decoder(xr, xi, thetas)
 
         return output
 
@@ -59,25 +53,18 @@ class PrivacyModel(pl.LightningModule):
         I_prime, _ = self.get_random_batch()
         I_prime = I_prime.to(device)
 
-        # Encoder
-        a = self.encoder(x)
-        b = self.encoder(I_prime)
         thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
-        # GAN
-        xr, xi, crit_loss, gen_loss = self.wgan.forward(a, b, thetas)
-
+        # Encoder/GAN
+        xr, xi, crit_loss, gen_loss = self.wgan.forward(x, I_prime, thetas)
 
         if optimizer_idx == 0:
             # Processing Unit
             xr, xi = self.processing_unit(xr, xi)
 
             # Decoder
-            thetas = thetas.view([thetas.shape[0]] + (len(xr.shape)-1) * [1]) 
-            x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move to decoder
-            x = self.decoder(x_orig_r)
-            output = F.log_softmax(x, dim=1)
+            output = self.decoder(xr, xi, thetas)
 
             # Loss
             loss = F.nll_loss(output, target)
@@ -89,12 +76,12 @@ class PrivacyModel(pl.LightningModule):
             return total_loss
         else:
             if batch_idx % 50 == 0:
-                print("Critique Loss: ", crit_loss)  # TODO: move to logger
+                print("Critic Loss: ", crit_loss)  # TODO: move to logger
             return crit_loss
 
     def configure_optimizers(self):
-        optimizer_gen = torch.optim.RMSprop(list(self.encoder.parameters()) + list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)
-        optimizer_crit = torch.optim.RMSprop(self.wgan.critique.parameters(), lr=0.00005)
+        optimizer_gen = torch.optim.RMSprop(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)
+        optimizer_crit = torch.optim.RMSprop(self.wgan.critic.parameters(), lr=0.00005)
         return (
             {'optimizer': optimizer_gen, 'frequency': 1},
             {'optimizer': optimizer_crit, 'frequency': 5}
