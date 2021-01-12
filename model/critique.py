@@ -7,8 +7,6 @@ import torch.nn as nn
 class Critique(nn.Module):
     def __init__(self, size, k):
         super().__init__()
-        #self.batch_size = size[0]
-        #self.img_size = size[1] * size[2] * size[3]
         self.score = nn.Linear(size, 1)
         self.k = k
 
@@ -27,9 +25,5 @@ class Critique(nn.Module):
         # rotate every sample by a random angle, the result should be a senseless feature vector
         a_prime = torch.cos(-thetas) * xr - torch.sin(-thetas) * xi
         fake_scores = self.score(a_prime)
-        #for i in range(self.k-1):  # TODO: remove for-loops
-        #    theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))  # TODO: remove numpy
-        #    a_prime = torch.cos(-theta)*xr - torch.sin(-theta)*xi
-        #    fake_scores.append(self.score(a_prime))
-        # fake_scores = torch.stack(fake_scores, 0).squeeze()
+
         return real_score, torch.mean(fake_scores.squeeze(), dim=0)
