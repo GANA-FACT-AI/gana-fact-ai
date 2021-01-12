@@ -68,7 +68,7 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             loss = F.nll_loss(output, target)
-            total_loss = loss + gen_loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
+            total_loss = loss + gen_loss 
             if batch_idx % 50 == 0:
                 print("Generator Loss: ", gen_loss)
                 print("Total Loss: ", total_loss)  # TODO: move to logger
