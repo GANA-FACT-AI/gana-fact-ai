@@ -13,17 +13,23 @@ class Critique(nn.Module):
         self.k = k
 
     def forward(self, xr, xi, a):
-        batch_size = xr.shape[0]
-        img_size = xr.shape[1]*xr.shape[2]*xr.shape[3]  # TODO: all shapes should work??
-        xr = xr.reshape((batch_size, img_size))  # TODO: use torch.flatten
-        xi = xi.reshape((batch_size, img_size))  # TODO: use torch.flatten
-        a = a.reshape((batch_size, img_size))  # TODO: use torch.flatten
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+        xr = torch.flatten(xr, start_dim=1)
+        xi = torch.flatten(xi, start_dim=1)
+        a = torch.flatten(a, start_dim=1)
 
         real_score = self.score(a).squeeze()
-        fake_scores = []
-        for i in range(self.k-1):  # TODO: remove for-loops
-            theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))  # TODO: remove numpy
-            a_prime = torch.cos(-theta)*xr - torch.sin(-theta)*xi
-            fake_scores.append(self.score(a_prime))
-        fake_scores = torch.stack(fake_scores, 0).squeeze()
-        return real_score, torch.mean(fake_scores, dim=0)
+        # for each sample, we want to generate k negative examples
+        xr = xr.repeat(self.k, 1)
+        xi = xi.repeat(self.k, 1)
+        thetas = torch.rand(xr.shape[0], 1).to(device) * 2 * math.pi
+        # rotate every sample by a random angle, the result should be a senseless feature vector
+        a_prime = torch.cos(-thetas) * xr - torch.sin(-thetas) * xi
+        fake_scores = self.score(a_prime)
+        #for i in range(self.k-1):  # TODO: remove for-loops
+        #    theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))  # TODO: remove numpy
+        #    a_prime = torch.cos(-theta)*xr - torch.sin(-theta)*xi
+        #    fake_scores.append(self.score(a_prime))
+        # fake_scores = torch.stack(fake_scores, 0).squeeze()
+        return real_score, torch.mean(fake_scores.squeeze(), dim=0)

@@ -11,18 +11,28 @@ from model.wgan import WGAN
 
 
 class PrivacyModel(pl.LightningModule):
-    def __init__(self, train_iter, *args):
+    def __init__(self, train_loader, *args):
         super().__init__()
         #self.save_hyperparameters()
         self.wgan = WGAN(k=8)
         self.encoder = Encoder()
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
-        self.train_iter = train_iter
+        self.train_loader = train_loader
+        self.train_iter = iter(train_loader)
+        self.accuracy = pl.metrics.Accuracy()
+
+    def get_random_batch(self):
+        try:
+            x = next(self.train_iter)
+        except Exception as e:
+            self.train_iter = iter(self.train_loader)
+            x = next(self.train_iter)
+        return x
 
     def forward(self, batch):
         x = batch[0]  # TODO: use whole batch
-        I_prime,_ = self.train_iter.next()
+        I_prime, _ = self.get_random_batch()
 
         # Encoder
         a = self.encoder(x)
@@ -30,7 +40,7 @@ class PrivacyModel(pl.LightningModule):
         theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))  # TODO: Why use numpy? Use Torch instead!
 
         # GAN
-        xr, xi = self.wgan(a, b, theta)
+        xr, xi = self.wgan.generate(a, b, theta)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
@@ -43,26 +53,30 @@ class PrivacyModel(pl.LightningModule):
         return output
 
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
-        x = batch[0]  # TODO: Use full batch
-        target = batch[1]  # TODO: Really?
-        I_prime, _ = self.train_iter.next()
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        x, target = batch
+        I_prime, _ = self.get_random_batch()
+        I_prime = I_prime.to(device)
 
         # Encoder
         a = self.encoder(x)
         b = self.encoder(I_prime)
-        theta = torch.from_numpy(np.array(np.random.uniform(0, 2*math.pi)))  # TODO: remove Numpy
+        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
+        thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # GAN
-        xr, xi, crit_loss, gen_loss = self.wgan.training_step(a, b, theta)
+        xr, xi, crit_loss, gen_loss = self.wgan.forward(a, b, thetas)
 
         if optimizer_idx == 0:
             # Processing Unit
             xr, xi = self.processing_unit(xr, xi)
 
             # Decoder
-            x_orig_r = torch.cos(-theta)*xr - torch.sin(-theta)*xi  # TODO: Move to decoder
+            x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move to decoder
             x = self.decoder(x_orig_r)
             output = F.log_softmax(x, dim=1)
+
+            print('train_acc', self.accuracy(output, target))
 
             # Loss
             loss = F.nll_loss(output, target)

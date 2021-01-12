@@ -11,7 +11,6 @@ from model.privacymodel import PrivacyModel
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
     train_loader, test_loader = load_data(args.batch_size, args.num_workers)
-    train_iter = iter(train_loader)
     # raise NotImplementedError()
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
@@ -28,7 +27,7 @@ def train(args):
                          )
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel(train_iter)
+    model = PrivacyModel(train_loader)
 
     trainer.fit(model, train_loader)
 
