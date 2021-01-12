@@ -66,23 +66,26 @@ class PrivacyModel(pl.LightningModule):
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # GAN
-        _, _, crit_loss, gen_loss = self.wgan.forward(a, b, thetas)
+        xr, xi, crit_loss, gen_loss = self.wgan.forward(a, b, thetas)
+
 
         if optimizer_idx == 0:
             # Processing Unit
-            xr, xi = self.processing_unit(a, b)
+            xr, xi = self.processing_unit(xr, xi)
 
             # Decoder
-            #x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move to decoder
-            x = self.decoder(xr)
+            thetas = thetas.view([thetas.shape[0]] + (len(xr.shape)-1) * [1]) 
+            x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi  # TODO: Move to decoder
+            x = self.decoder(x_orig_r)
             output = F.log_softmax(x, dim=1)
 
-            print('train_acc', self.accuracy(output, target))
+            #print('train_acc', self.accuracy(output, target))
 
             # Loss
             loss = F.nll_loss(output, target)
-            total_loss = loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
-            print("Total Loss: ", total_loss)  # TODO: move to logger
+            #print(gen_loss)
+            total_loss = loss + gen_loss  # TODO: Do we really want to train both losses with the same optimizer? Also, is gen and crit loss with the right sign?
+            #print("Total Loss: ", total_loss)  # TODO: move to logger
             return total_loss
         else:
             #print("Critique Loss: ", crit_loss)  # TODO: move to logger
