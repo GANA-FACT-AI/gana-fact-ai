@@ -7,9 +7,9 @@ class ProcessingUnit(nn.Module):
         super().__init__()
         self.bn = InvariantBatchNorm()
         self.relu = InvariantReLU()
-        self.conv2 = ComplexConv2d(20, 50, 5, 1)
-        self.fc1 = ComplexLinear(4*4*50, 500)
-        self.fc2 = ComplexLinear(500, 200)
+        self.conv2 = ComplexConv2d(20, 50, 5, 1, bias=False)
+        self.fc1 = ComplexLinear(4*4*50, 500, bias=False)
+        self.fc2 = ComplexLinear(500, 200, bias=False)
 
     def forward(self, xr, xi):
         xr,xi = self.bn(xr,xi)
