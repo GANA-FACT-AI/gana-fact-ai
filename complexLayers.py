@@ -96,10 +96,10 @@ class ComplexConv2d(Module):
 
 class ComplexLinear(Module):
 
-    def __init__(self, in_features, out_features):
+    def __init__(self, in_features, out_features, bias = True):
         super(ComplexLinear, self).__init__()
-        self.fc_r = Linear(in_features, out_features)
-        self.fc_i = Linear(in_features, out_features)
+        self.fc_r = Linear(in_features, out_features, bias)
+        self.fc_i = Linear(in_features, out_features, bias)
 
     def forward(self,input_r, input_i):
         return self.fc_r(input_r)-self.fc_i(input_i), \
