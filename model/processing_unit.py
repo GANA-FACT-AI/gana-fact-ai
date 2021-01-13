@@ -9,5 +9,7 @@ class ProcessingUnit(nn.Module):
         self.layers = make_layers(ComplexBlock, 16, 32, 3, stride=2)
 
     def forward(self, xr, xi):
-        xr, xi = self.layers(xr, xi)
+        x = self.layers([xr, xi])
+        xr = x[0]
+        xi = x[1]
         return xr, xi

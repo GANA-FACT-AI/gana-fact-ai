@@ -103,13 +103,18 @@ class ComplexBlock(nn.Module):
                      InvariantBatchNorm()
                 )
 
-    def forward(self, xr, xi):
-        xr, xi = self.relu(self.bn1(self.conv1(xr, xi)))
-        xr, xi = self.bn2(self.conv2(xr, xi))
-        xr += self.shortcut(xr)
-        xi += self.shortcut(xi)
+    def forward(self, x):
+        xr_orig = x[0]
+        xi_orig = x[1]
+        xr, xi = self.conv1(xr_orig, xi_orig)
+        xr, xi = self.bn1(xr, xi)
         xr, xi = self.relu(xr, xi)
-        return xr, xi
+        xr, xi = self.conv2(xr, xi)
+        xr, xi = self.bn2(xr, xi)
+        xr += self.shortcut(xr_orig)
+        xi += self.shortcut(xi_orig)
+        xr, xi = self.relu(xr, xi)
+        return [xr, xi]
 
 # Everything below here is just for comparison but won't actually be used.
 
