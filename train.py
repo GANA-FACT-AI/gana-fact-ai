@@ -4,7 +4,7 @@ import os
 import torch
 import pytorch_lightning as pl
 
-from data.MNIST import load_data
+from data.CIFAR10 import load_data
 from model.privacymodel import PrivacyModel
 
 
