@@ -3,6 +3,7 @@ import os
 
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning import loggers as pl_loggers
 
 from data.CIFAR10 import load_data
 from model.privacymodel import PrivacyModel
@@ -11,6 +12,8 @@ from model.privacymodel import PrivacyModel
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
     train_loader, test_loader = load_data(args.batch_size, args.num_workers)
+    tb_logger = pl_loggers.TensorBoardLogger('logs/')
+
     # raise NotImplementedError()
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
@@ -24,6 +27,7 @@ def train(args):
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
                          limit_val_batches=args.limit_val_batches,
+                         logger=tb_logger,
                          )
 
     pl.seed_everything(args.seed)  # To be reproducible
@@ -53,11 +57,11 @@ if __name__ == '__main__':
                         help='Minibatch size')
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=80, type=int,
+    parser.add_argument('--epochs', default=200, type=int,
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
-    parser.add_argument('--num_workers', default=4, type=int,
+    parser.add_argument('--num_workers', default=0, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
     parser.add_argument('--log_dir', default='logs', type=str,

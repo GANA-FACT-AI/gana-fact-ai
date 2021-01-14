@@ -16,5 +16,6 @@ def load_data(batch_size, num_workers):
     testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                         download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                            shuffle=False, num_workers=num_workers, drop_last=True)
+                                            shuffle=False, num_workers=num_workers, drop_last=True, 
+                                            pin_memory=True)
     return trainloader, testloader
