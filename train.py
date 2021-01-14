@@ -57,7 +57,7 @@ if __name__ == '__main__':
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
-    parser.add_argument('--num_workers', default=12, type=int,
+    parser.add_argument('--num_workers', default=4, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
     parser.add_argument('--log_dir', default='logs', type=str,
