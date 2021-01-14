@@ -82,8 +82,8 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
 
-    def validation_step(self):
-        pass
+    # def validation_step(self):
+    #     pass
 
-    def test_step(self):
-        pass
+    # def test_step(self):
+    #     pass
