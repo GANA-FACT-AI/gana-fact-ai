@@ -58,16 +58,21 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             loss = F.nll_loss(output, target)
-            total_loss = loss #+ gen_loss
+            total_loss = loss + gen_loss
+            self.logger.experiment.add_scalar("generator_loss", gen_loss)
+            self.logger.experiment.add_scalar("classifier_loss", loss)
+            self.logger.experiment.add_scalar("total_loss", total_loss)
+            self.logger.experiment.add_scalar("critic_loss", crit_loss)
+            self.logger.experiment.add_scalar("accuracy", self.accuracy(output, target))
             if batch_idx % 50 == 0:
                 print("Generator Loss: ", gen_loss)
                 print("Total Loss: ", total_loss)  # TODO: move to logger
                 print('Train Acc', self.accuracy(output, target))
             return total_loss
-        #else:
-        #    if batch_idx % 50 == 0:
-        #        print("Critic Loss: ", crit_loss)  # TODO: move to logger
-        #    return crit_loss
+        else:
+            if batch_idx % 50 == 0:
+                print("Critic Loss: ", crit_loss)  # TODO: move to logger
+            return crit_loss
 
     def configure_optimizers(self):
         optimizer_gen = torch.optim.RMSprop(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)
