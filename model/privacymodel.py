@@ -15,23 +15,13 @@ class PrivacyModel(pl.LightningModule):
         self.wgan = WGAN(k=8)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
-        self.train_loader = train_loader
-        self.train_iter = iter(train_loader)
+        self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
-
-    def get_random_batch(self):
-        try:
-            x = next(self.train_iter)
-        except Exception as e:
-            self.train_iter = iter(self.train_loader)
-            x = next(self.train_iter)
-        return x
 
     def forward(self, batch):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         x, _ = batch
-        I_prime, _ = self.get_random_batch()
-        I_prime = I_prime.to(device)
+        I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
 
         thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
@@ -50,8 +40,8 @@ class PrivacyModel(pl.LightningModule):
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         x, target = batch
-        I_prime, _ = self.get_random_batch()
-        I_prime = I_prime.to(device)
+        I_prime = x if self.random_batch is None else self.random_batch
+        self.random_batch = x
 
         thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
@@ -68,16 +58,16 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             loss = F.nll_loss(output, target)
-            total_loss = loss + gen_loss 
+            total_loss = loss #+ gen_loss
             if batch_idx % 50 == 0:
                 print("Generator Loss: ", gen_loss)
                 print("Total Loss: ", total_loss)  # TODO: move to logger
                 print('Train Acc', self.accuracy(output, target))
             return total_loss
-        else:
-            if batch_idx % 50 == 0:
-                print("Critic Loss: ", crit_loss)  # TODO: move to logger
-            return crit_loss
+        #else:
+        #    if batch_idx % 50 == 0:
+        #        print("Critic Loss: ", crit_loss)  # TODO: move to logger
+        #    return crit_loss
 
     def configure_optimizers(self):
         optimizer_gen = torch.optim.RMSprop(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)

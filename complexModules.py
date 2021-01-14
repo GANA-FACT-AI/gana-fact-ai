@@ -20,7 +20,7 @@ class InvariantReLU(Module):
 		self.c  = c
 	def forward(self,input_r,input_i):
 		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2))
-		maxpick = torch.max(norm, self.c * torch.ones(norm.shape))
+		maxpick = torch.max(norm, self.c * torch.ones(norm.shape).to(norm.device))
 		# print('maxpick', maxpick)
 		return norm/maxpick  * input_r , norm/maxpick * input_i
 
