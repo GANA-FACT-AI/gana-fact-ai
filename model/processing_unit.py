@@ -1,7 +1,7 @@
 import torch.nn as nn
 from complexLayers import ComplexConv2d, ComplexLinear
 from complexModules import *
-from resnet import ComplexBlock, make_layers
+from resnet import ComplexBlock, make_layers, _weights_init
 
 class ProcessingUnit(nn.Module):
     def __init__(self):

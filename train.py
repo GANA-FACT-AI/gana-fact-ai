@@ -11,7 +11,6 @@ from model.privacymodel import PrivacyModel
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
     train_loader, test_loader = load_data(args.batch_size, args.num_workers)
-    # raise NotImplementedError()
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=True,
@@ -24,10 +23,12 @@ def train(args):
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
                          limit_val_batches=args.limit_val_batches,
+                         resume_from_checkpoint='./logs/lightning_logs/version_0/checkpoints/epoch=29.ckpt',
+                         deterministic=True
                          )
 
-    pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel(train_loader)
+    pl.utilities.seed.seed_everything(args.seed)  # To be reproducible
+    model = PrivacyModel()
 
     trainer.fit(model, train_loader)
 

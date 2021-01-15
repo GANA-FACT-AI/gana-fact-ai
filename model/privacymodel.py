@@ -10,7 +10,7 @@ from model.wgan import WGAN
 
 
 class PrivacyModel(pl.LightningModule):
-    def __init__(self, train_loader, *args):
+    def __init__(self, *args):
         super().__init__()
         self.wgan = WGAN(k=8)
         self.decoder = Decoder()
@@ -27,7 +27,7 @@ class PrivacyModel(pl.LightningModule):
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # Encoder/GAN
-        xr, xi = self.wgan.generate(x, I_prime, thetas)
+        xr, xi, _ = self.wgan.generate(x, I_prime, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
@@ -58,16 +58,16 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             loss = F.nll_loss(output, target)
-            total_loss = loss #+ gen_loss
+            total_loss = loss + gen_loss
             if batch_idx % 50 == 0:
                 print("Generator Loss: ", gen_loss)
                 print("Total Loss: ", total_loss)  # TODO: move to logger
                 print('Train Acc', self.accuracy(output, target))
             return total_loss
-        #else:
-        #    if batch_idx % 50 == 0:
-        #        print("Critic Loss: ", crit_loss)  # TODO: move to logger
-        #    return crit_loss
+        else:
+            if batch_idx % 50 == 0:
+                print("Critic Loss: ", crit_loss)  # TODO: move to logger
+            return crit_loss
 
     def configure_optimizers(self):
         optimizer_gen = torch.optim.RMSprop(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)
