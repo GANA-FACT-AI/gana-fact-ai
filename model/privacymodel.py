@@ -1,3 +1,5 @@
+from typing import List, Any
+
 import torch
 import math
 import pytorch_lightning as pl
@@ -86,6 +88,10 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_gen, 'frequency': 1},
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
+
+    def training_epoch_end(self, outputs: List[Any]) -> None:
+        for name, params in self.named_parameters():
+            self.logger.experiment.add_histogram(name, params, self.current_epoch)
 
     # def validation_step(self):
     #     pass
