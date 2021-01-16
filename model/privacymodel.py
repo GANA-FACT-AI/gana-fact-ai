@@ -1,6 +1,5 @@
 import torch
 import math
-import numpy as np
 import pytorch_lightning as pl
 import torch.nn.functional as F
 
@@ -12,22 +11,26 @@ from model.wgan import WGAN
 class PrivacyModel(pl.LightningModule):
     def __init__(self, train_loader, *args):
         super().__init__()
-        self.wgan = WGAN(k=8)
+        self.wgan = WGAN(k=8, log_fn=self.log)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
         self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
 
-    def forward(self, batch):
+        # needed to fix logging bug
+        self.loss = None
+        self.total_loss = None
+        self.last_accuracy = None
+
+    def forward(self, x):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        x, _ = batch
         I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
 
         thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
         # Encoder/GAN
-        xr, xi = self.wgan.generate(x, I_prime, thetas)
+        xr, xi, _ = self.wgan.generate(x, I_prime, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
@@ -39,6 +42,8 @@ class PrivacyModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        if self.current_epoch == 0 and batch_idx == 0:
+            self.logger.experiment.add_graph(self, torch.rand(1, 3, 32, 32).to(device))
         x, target = batch
         I_prime = x if self.random_batch is None else self.random_batch
         self.random_batch = x
@@ -49,6 +54,9 @@ class PrivacyModel(pl.LightningModule):
         # Encoder/GAN
         xr, xi, crit_loss, gen_loss = self.wgan.forward(x, I_prime, thetas)
 
+        self.log("generator_loss", gen_loss)
+        self.log("critic_loss", crit_loss)
+
         if optimizer_idx == 0:
             # Processing Unit
             xr, xi = self.processing_unit(xr, xi)
@@ -57,21 +65,18 @@ class PrivacyModel(pl.LightningModule):
             output = self.decoder(xr, xi, thetas)
 
             # Loss
-            loss = F.nll_loss(output, target)
-            total_loss = loss + gen_loss
-            self.logger.experiment.add_scalar("generator_loss", gen_loss)
-            self.logger.experiment.add_scalar("classifier_loss", loss)
-            self.logger.experiment.add_scalar("total_loss", total_loss)
-            self.logger.experiment.add_scalar("critic_loss", crit_loss)
-            self.logger.experiment.add_scalar("accuracy", self.accuracy(output, target))
-            if batch_idx % 50 == 0:
-                print("Generator Loss: ", gen_loss)
-                print("Total Loss: ", total_loss)  # TODO: move to logger
-                print('Train Acc', self.accuracy(output, target))
-            return total_loss
+            self.loss = F.nll_loss(output, target)
+            self.total_loss = self.loss + gen_loss
+            self.last_accuracy = self.accuracy(output, target)
+
+            self.log("classifier_loss", self.loss)
+            self.log("total_loss", self.total_loss)
+            self.log("accuracy", self.last_accuracy)
+            return self.total_loss
         else:
-            if batch_idx % 50 == 0:
-                print("Critic Loss: ", crit_loss)  # TODO: move to logger
+            self.log("classifier_loss", self.loss)
+            self.log("total_loss", self.total_loss)
+            self.log("accuracy", self.last_accuracy)
             return crit_loss
 
     def configure_optimizers(self):
