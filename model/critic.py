@@ -28,4 +28,4 @@ class Critic(nn.Module):
         #print("a_prime: ", torch.mean(a_prime))
         fake_scores = self.score(a_prime)
 
-        return real_score, torch.mean(fake_scores.squeeze(), dim=0)
+        return real_score, fake_scores.squeeze()
