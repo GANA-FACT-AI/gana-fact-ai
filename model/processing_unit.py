@@ -7,6 +7,7 @@ class ProcessingUnit(nn.Module):
     def __init__(self):
         super().__init__()
         self.layers = make_layers(ComplexBlock, 16, 32, 5, stride=2)
+        self.apply(_weights_init)
 
     def forward(self, xr, xi):
         x = self.layers([xr, xi])

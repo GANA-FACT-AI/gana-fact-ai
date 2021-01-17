@@ -9,6 +9,7 @@ class Decoder(nn.Module):
         super().__init__()
         self.layer3 = make_layers(BasicBlock, 32, 64, 5, stride=2)
         self.linear = nn.Linear(64, 10)
+        self.apply(_weights_init)
 
     def forward(self, xr, xi, thetas):
         thetas = thetas.view([thetas.shape[0]] + (len(xr.shape)-1) * [1]) 

@@ -1,3 +1,5 @@
+from typing import List, Any
+
 import torch
 import math
 import numpy as np
@@ -49,16 +51,6 @@ class PrivacyModel(pl.LightningModule):
         # Encoder/GAN
         xr, xi, crit_loss, gen_loss = self.wgan.forward(x, I_prime, thetas)
 
-        def on_after_backward(self):
-            # example to inspect gradient information in tensorboard
-            if self.trainer.global_step % 25 == 0:  # don't make the tf file huge
-                params = self.state_dict()
-                for k, v in params.items():
-                    grads = v
-                    print(torch.mean(grads))
-                    name = k
-                    self.logger.experiment.add_histogram(tag=name, values=grads, global_step=self.trainer.global_step)
-
         self.log("Critic Loss: ", crit_loss)
         self.log("Gen Loss: ", gen_loss)
 
@@ -89,6 +81,21 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_gen, 'frequency': 1},
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
+
+    '''
+    def training_epoch_end(self, outputs: List[Any]) -> None:
+        for name, params in self.named_parameters():
+            self.logger.experiment.add_histogram(name, params, self.current_epoch)
+    '''
+    def on_after_backward(self):
+        # example to inspect gradient information in tensorboard
+        if self.trainer.global_step % 389 == 0:  # don't make the tf file huge
+            params = self.state_dict()
+            for k, v in params.items():
+                grads = v
+                name = k
+                self.logger.experiment.add_histogram(tag=name, values=grads, global_step=self.trainer.global_step)
+
 
     def validation_step(self):
         pass

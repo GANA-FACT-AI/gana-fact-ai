@@ -25,6 +25,7 @@ def train(args):
                          limit_val_batches=args.limit_val_batches,
                          #resume_from_checkpoint='./logs/lightning_logs/version_0/checkpoints/epoch=29.ckpt',
                          deterministic=True,
+                         track_grad_norm=2
                          )
 
     pl.utilities.seed.seed_everything(args.seed)  # To be reproducible

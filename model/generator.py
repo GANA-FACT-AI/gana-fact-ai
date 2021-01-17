@@ -12,6 +12,7 @@ class Generator(nn.Module):
         self.bn1 = nn.BatchNorm2d(16)
         self.relu = nn.ReLU()
         self.layers = make_layers(BasicBlock, 16, 16, 5, stride=1)
+        self.apply(_weights_init)
 
     def forward(self, x, I_prime, theta):
         if (x != x).any():
