@@ -7,7 +7,7 @@ from resnet import BasicBlock, make_layers, _weights_init
 class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer3 = make_layers(BasicBlock, 32, 64, 3, stride=2)
+        self.layer3 = make_layers(BasicBlock, 32, 64, 5, stride=2)
         self.linear = nn.Linear(64, 10)
 
     def forward(self, xr, xi, thetas):

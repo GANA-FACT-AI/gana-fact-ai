@@ -11,7 +11,7 @@ class Generator(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
         self.relu = nn.ReLU()
-        self.layers = make_layers(BasicBlock, 16, 16, 3, stride=1)
+        self.layers = make_layers(BasicBlock, 16, 16, 5, stride=1)
 
     def forward(self, x, I_prime, theta):
         if (x != x).any():

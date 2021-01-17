@@ -49,6 +49,19 @@ class PrivacyModel(pl.LightningModule):
         # Encoder/GAN
         xr, xi, crit_loss, gen_loss = self.wgan.forward(x, I_prime, thetas)
 
+        def on_after_backward(self):
+            # example to inspect gradient information in tensorboard
+            if self.trainer.global_step % 25 == 0:  # don't make the tf file huge
+                params = self.state_dict()
+                for k, v in params.items():
+                    grads = v
+                    print(torch.mean(grads))
+                    name = k
+                    self.logger.experiment.add_histogram(tag=name, values=grads, global_step=self.trainer.global_step)
+
+        self.log("Critic Loss: ", crit_loss)
+        self.log("Gen Loss: ", gen_loss)
+
         if optimizer_idx == 0:
             # Processing Unit
             xr, xi = self.processing_unit(xr, xi)

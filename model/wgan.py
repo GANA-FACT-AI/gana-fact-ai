@@ -21,16 +21,6 @@ class WGAN(nn.Module):
         critic_loss = torch.mean(real_score) - torch.mean(fake_score)
         generator_loss = -torch.mean(real_score) + torch.mean(fake_score)
 
-        if(critic_loss != critic_loss).any():
-            print(real_score)
-            print(fake_score)
-            print(xr)
-            print(xi)
-            print(a)
-            print(critic_loss)
-            print(generator_loss)
-            print("done")
-
         for p in self.critic.parameters():
             p.data.clamp_(-0.01, 0.01)
 

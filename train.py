@@ -23,8 +23,8 @@ def train(args):
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
                          limit_val_batches=args.limit_val_batches,
-                         resume_from_checkpoint='./logs/lightning_logs/version_0/checkpoints/epoch=29.ckpt',
-                         deterministic=True
+                         #resume_from_checkpoint='./logs/lightning_logs/version_0/checkpoints/epoch=29.ckpt',
+                         deterministic=True,
                          )
 
     pl.utilities.seed.seed_everything(args.seed)  # To be reproducible
