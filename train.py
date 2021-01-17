@@ -69,7 +69,7 @@ if __name__ == '__main__':
     parser.add_argument('--progress_bar', action='store_true',
                         help=('Use a progress bar indicator for interactive experimentation. '
                               'Not to be used in conjuction with SLURM jobs'))
-    parser.add_argument('--debug', default=True, type=float,
+    parser.add_argument('--debug', default=False, type=float,
                         help='Shorten epochs and epoch lengths for quick debugging')
 
     args = parser.parse_args()
