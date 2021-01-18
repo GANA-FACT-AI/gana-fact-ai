@@ -5,31 +5,15 @@ from complexModules import *
 class ProcessingUnit(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = ComplexConv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1)
-        self.relu = InvariantReLU()
-        self.conv2 = ComplexConv2d(in_channels=256, out_channels=512, kernel_size=3, stride=1, padding=1)
-        self.conv3 = ComplexConv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
-        self.conv4 = ComplexConv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
-        self.conv5 = ComplexConv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
-        self.conv6 = ComplexConv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
-        self.conv7 = ComplexConv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
+        self.conv1 = ComplexConv2d(384, 256, kernel_size=3, padding=1)
+        self.relu = InvariantReLU(inplace=True)
+        self.conv2 = ComplexConv2d(256, 256, kernel_size=3, padding=1)
 
     def forward(self, xr, xi):
         xr, xi = self.conv1(xr, xi)
         xr, xi = self.relu(xr, xi)
-        xr, xi = invmaxpool2d(xr, xi, kernel_size=2, stride=2)
         xr, xi = self.conv2(xr, xi)
         xr, xi = self.relu(xr, xi)
-        xr, xi = self.conv3(xr, xi)
-        xr, xi = self.relu(xr, xi)
-        xr, xi = self.conv4(xr, xi)
-        xr, xi = self.relu(xr, xi)
-        xr, xi = invmaxpool2d(xr, xi, kernel_size=2, stride=2)
-        xr, xi = self.conv5(xr, xi)
-        xr, xi = self.relu(xr, xi)
-        xr, xi = self.conv6(xr, xi)
-        xr, xi = self.relu(xr, xi)
-        xr, xi = self.conv7(xr, xi)
-        xr, xi = self.relu(xr, xi)
-        xr, xi = invmaxpool2d(xr, xi, kernel_size=2, stride=2)
+        xr, xi = invmaxpool2d(xr, xi, 3, 2) #TODO: Set appropriate c value
+
         return xr, xi

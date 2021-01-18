@@ -43,6 +43,8 @@ class PrivacyModel(pl.LightningModule):
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         x, target = batch
+        print(x.shape)
+        print(target.shape)
         I_prime = x if self.random_batch is None else self.random_batch
         self.random_batch = x
 

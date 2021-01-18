@@ -4,18 +4,13 @@ import os
 import torch
 import pytorch_lightning as pl
 
-from data.cub2011 import *
+from data.CelebA import *
 from model.privacymodel import PrivacyModel
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    trainset = Cub2011(root='datasets/CUB-200/')
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                            shuffle=True, num_workers=args.num_workers, drop_last=True)
-    testset = Cub2011(root='datasets/CUB-200/', train=False)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
-                                            shuffle=True, num_workers=args.num_workers, drop_last=True)
+    train_loader, val_loader, test_loader = load_data(args.batch_size, args.num_workers)
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=True,
