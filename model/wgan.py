@@ -8,7 +8,7 @@ class WGAN(nn.Module):
     def __init__(self, k):
         super().__init__()
         self.generator = Generator()
-        self.critic = Critic(1176, k)  # TODO: remove magic numbers
+        self.critic = Critic(802816, k)  # TODO: remove magic numbers
 
     def generate(self, a, b, theta):
         xr, xi, a = self.generator(a, b, theta)

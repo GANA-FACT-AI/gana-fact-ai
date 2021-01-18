@@ -70,7 +70,7 @@ class PrivacyModel(pl.LightningModule):
 
             self.logger.experiment.add_scalar("Accuracy", accuracy)
             self.logger.experiment.add_scalar("Regular Loss", loss)
-            
+
             if batch_idx % 50 == 0:
                 print("Generator Loss: ", gen_loss)
                 print("Total Loss: ", total_loss)  # TODO: move to logger
