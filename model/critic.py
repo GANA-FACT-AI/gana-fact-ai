@@ -8,11 +8,11 @@ class Critic(nn.Module):
     def __init__(self, size, k):
         super().__init__()
         layers = list()
-        layers.append(nn.BatchNorm2d(16))
         layers.append(nn.Conv2d(16, 32, 3))
+        layers.append(nn.ReLU())
         layers.append(nn.MaxPool2d(2))
-        layers.append(nn.BatchNorm2d(32))
         layers.append(nn.Conv2d(32, 64, 3))
+        layers.append(nn.ReLU())
         layers.append(nn.AvgPool2d(13))
         layers.append(nn.Flatten())
         layers.append(nn.Linear(64, 1))
