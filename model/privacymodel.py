@@ -79,7 +79,7 @@ class PrivacyModel(pl.LightningModule):
         optimizer_crit = torch.optim.RMSprop(self.wgan.critic.parameters(), lr=0.00005)
         return (
             {'optimizer': optimizer_gen, 'frequency': 1},
-            {'optimizer': optimizer_crit, 'frequency': 5}
+            {'optimizer': optimizer_crit, 'frequency': 1}
         )
 
     '''
@@ -95,6 +95,8 @@ class PrivacyModel(pl.LightningModule):
                 grads = v
                 name = k
                 self.logger.experiment.add_histogram(tag=name, values=grads, global_step=self.trainer.global_step)
+                #self.logger.experiment.add_histogram(tag="{}_gradients".format(name), values=grads.grad, global_step=self.trainer.global_step)
+            self.logger.experiment.add_histogram(tag="conv1_weight_grads", values=self.wgan.generator.conv1.weight.grad, global_step=self.trainer.global_step)
 
 
     def validation_step(self):
