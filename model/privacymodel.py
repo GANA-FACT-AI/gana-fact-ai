@@ -14,6 +14,7 @@ from model.wgan import WGAN
 class PrivacyModel(pl.LightningModule):
     def __init__(self, *args):
         super().__init__()
+
         self.wgan = WGAN(k=8)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
@@ -64,10 +65,16 @@ class PrivacyModel(pl.LightningModule):
             # Loss
             loss = F.nll_loss(output, target)
             total_loss = loss + gen_loss
+
+            accuracy = self.accuracy(output, target)
+
+            self.logger.experiment.add_scalar("Accuracy", accuracy)
+            self.logger.experiment.add_scalar("Regular Loss", loss)
+            
             if batch_idx % 50 == 0:
                 print("Generator Loss: ", gen_loss)
                 print("Total Loss: ", total_loss)  # TODO: move to logger
-                print('Train Acc', self.accuracy(output, target))
+                print('Train Acc', accuracy)
             return total_loss
         else:
             if batch_idx % 50 == 0:
@@ -79,7 +86,7 @@ class PrivacyModel(pl.LightningModule):
         optimizer_crit = torch.optim.RMSprop(self.wgan.critic.parameters(), lr=0.00005)
         return (
             {'optimizer': optimizer_gen, 'frequency': 1},
-            {'optimizer': optimizer_crit, 'frequency': 1}
+            {'optimizer': optimizer_crit, 'frequency': 5}
         )
 
     '''
@@ -96,7 +103,7 @@ class PrivacyModel(pl.LightningModule):
                 name = k
                 self.logger.experiment.add_histogram(tag=name, values=grads, global_step=self.trainer.global_step)
                 #self.logger.experiment.add_histogram(tag="{}_gradients".format(name), values=grads.grad, global_step=self.trainer.global_step)
-            self.logger.experiment.add_histogram(tag="conv1_weight_grads", values=self.wgan.generator.conv1.weight.grad, global_step=self.trainer.global_step)
+            #self.logger.experiment.add_histogram(tag="conv1_weight_grads", values=self.wgan.generator.conv1.weight.grad, global_step=self.trainer.global_step)
 
 
     def validation_step(self):
