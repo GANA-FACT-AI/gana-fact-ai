@@ -15,7 +15,6 @@ class Critic(nn.Module):
         xr = torch.flatten(xr, start_dim=1)
         xi = torch.flatten(xi, start_dim=1)
         a = torch.flatten(a, start_dim=1)
-        print(xr.shape)
 
         real_score = self.score(a).squeeze()
         # for each sample, we want to generate k negative examples

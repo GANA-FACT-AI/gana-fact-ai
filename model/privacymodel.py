@@ -61,8 +61,6 @@ class PrivacyModel(pl.LightningModule):
 
             # Decoder
             output = self.decoder(xr, xi, thetas)
-            print(output.shape)
-            print(target.shape)
 
             # Loss
             loss = F.nll_loss(output, target)
