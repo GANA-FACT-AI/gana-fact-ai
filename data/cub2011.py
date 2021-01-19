@@ -1,80 +1,100 @@
 import os
 import pandas as pd
+import numpy as np
+import cv2
+import random
 from torchvision.datasets.folder import default_loader
 from torchvision.datasets.utils import download_url
 from torch.utils.data import Dataset
 
 
-class Cub2011(Dataset):
-    base_folder = 'CUB_200_2011/images'
-    url = 'http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz'
-    filename = 'CUB_200_2011.tgz'
-    tgz_md5 = '97eceeb196236b17998738112f37df78'
-
-    def __init__(self, root, train=True, transform=None, loader=default_loader, download=True):
-        self.root = os.path.expanduser(root)
+class CUB(Dataset):
+    def __init__(self, files_path, labels, train_test, image_name, train=True, 
+                 transform=False):
+      
+        self.files_path = files_path
+        self.labels = labels
         self.transform = transform
-        self.loader = default_loader
-        self.train = train
-
-        if download:
-            self._download()
-
-        if not self._check_integrity():
-            raise RuntimeError('Dataset not found or corrupted.' +
-                               ' You can use download=True to download it')
-
-    def _load_metadata(self):
-        images = pd.read_csv(os.path.join(self.root, 'CUB_200_2011', 'images.txt'), sep=' ',
-                             names=['img_id', 'filepath'])
-        image_class_labels = pd.read_csv(os.path.join(self.root, 'CUB_200_2011', 'image_class_labels.txt'),
-                                         sep=' ', names=['img_id', 'target'])
-        train_test_split = pd.read_csv(os.path.join(self.root, 'CUB_200_2011', 'train_test_split.txt'),
-                                       sep=' ', names=['img_id', 'is_training_img'])
-
-        data = images.merge(image_class_labels, on='img_id')
-        self.data = data.merge(train_test_split, on='img_id')
-
-        if self.train:
-            self.data = self.data[self.data.is_training_img == 1]
+        self.train_test = train_test
+        self.image_name = image_name
+        
+        if train:
+          mask = self.train_test.is_train.values == 1
+          
         else:
-            self.data = self.data[self.data.is_training_img == 0]
+          mask = self.train_test.is_train.values == 0
+        
+        
+        self.filenames = self.image_name.iloc[mask]
+        self.labels = self.labels[mask]
+        self.num_files = self.labels.shape[0]
+       
+    def read_image(self, path):
+        im = cv2.imread(str(path))
+        return cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
 
-    def _check_integrity(self):
-        try:
-            self._load_metadata()
-        except Exception:
-            return False
+    def center_crop(self, im, min_sz=None):
+        """ Returns a center crop of an image"""
+        r,c,*_ = im.shape
+        if min_sz is None: min_sz = min(r,c)
+        start_r = math.ceil((r-min_sz)/2)
+        start_c = math.ceil((c-min_sz)/2)
+        return self.crop(im, start_r, start_c, min_sz, min_sz)
 
-        for index, row in self.data.iterrows():
-            filepath = os.path.join(self.root, self.base_folder, row.filepath)
-            if not os.path.isfile(filepath):
-                print(filepath)
-                return False
-        return True
+    def crop(self, im, r, c, target_r, target_c): 
+        return im[r:r+target_r, c:c+target_c]
 
-    def _download(self):
-        import tarfile
+    def random_crop(self, x, target_r, target_c):
+        """ Returns a random crop"""
+        r,c,*_ = x.shape
+        rand_r = random.uniform(0, 1)
+        rand_c = random.uniform(0, 1)
+        start_r = np.floor(rand_r*(r - target_r)).astype(int)
+        start_c = np.floor(rand_c*(c - target_c)).astype(int)
+        return self.crop(x, start_r, start_c, target_r, target_c)
 
-        if self._check_integrity():
-            print('Files already downloaded and verified')
-            return
+    def rotate_cv(self, im, deg, mode=cv2.BORDER_REFLECT, interpolation=cv2.INTER_AREA):
+        """ Rotates an image by deg degrees"""
+        r,c,*_ = im.shape
+        M = cv2.getRotationMatrix2D((c/2,r/2),deg,1)
+        return cv2.warpAffine(im,M,(c,r), borderMode=mode, 
+                            flags=cv2.WARP_FILL_OUTLIERS+interpolation)
 
-        download_url(self.url, self.root, self.filename, self.tgz_md5)
+    def normalize(self, im):
+        """Normalizes images with Imagenet stats."""
+        imagenet_stats = np.array([[0.485, 0.456, 0.406], [0.229, 0.224, 0.225]])
+        return (im/255.0 - imagenet_stats[0])/imagenet_stats[1]
 
-        with tarfile.open(os.path.join(self.root, self.filename), "r:gz") as tar:
-            tar.extractall(path=self.root)
+    def apply_transforms(self, x, sz=(224, 224), zoom=1.05):
+        """ Applies a random crop, rotation"""
+        sz1 = int(zoom*sz[0])
+        sz2 = int(zoom*sz[1])
+        x = cv2.resize(x, (sz1, sz2))
+        x = self.rotate_cv(x, np.random.uniform(-10,10))
+        x = self.random_crop(x, sz[1], sz[0])
+        if np.random.rand() >= .5:
+                    x = np.fliplr(x).copy()
+        return x
 
+    def denormalize(self, img):
+        imagenet_stats = np.array([[0.485, 0.456, 0.406], [0.229, 0.224, 0.225]])
+        return img*imagenet_stats[1] + imagenet_stats[0]
+        
     def __len__(self):
-        return len(self.data)
+        return self.num_files
+    
+    def __getitem__(self, index):
+        y = self.labels.iloc[index,1] - 1
+        
+        file_name = self.filenames.iloc[index, 1]
+        path = self.files_path/'images'/file_name
+        x = self.read_image(path)
+        if self.transform:
+            x = self.apply_transforms(x)
+        else:
+            x = cv2.resize(x, (224,224))
+        x = self.normalize(x)
+        x =  np.rollaxis(x, 2) # To meet torch's input specification(c*H*W) 
+        return x,y
 
-    def __getitem__(self, idx):
-        sample = self.data.iloc[idx]
-        path = os.path.join(self.root, self.base_folder, sample.filepath)
-        target = sample.target - 1  # Targets start at 1 by default, so shift to 0
-        img = self.loader(path)
-
-        if self.transform is not None:
-            img = self.transform(img)
-
-        return img, target
+    

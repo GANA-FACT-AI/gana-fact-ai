@@ -25,6 +25,8 @@ class Generator(nn.Module):
         )
 
     def forward(self, x, I_prime, theta):
+        print(x.dtype)
+        print(I_prime.dtype)
         a = self.layers(x)
         b = self.layers(I_prime)
         rotated_r = torch.cos(theta)*a - torch.sin(theta)*b

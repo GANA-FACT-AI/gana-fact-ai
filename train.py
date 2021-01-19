@@ -4,18 +4,40 @@ import os
 import torch
 import pytorch_lightning as pl
 
-from data.cub2011 import *
+from data.cub2011 import CUB
 from model.privacymodel import PrivacyModel
+from pathlib import Path
+import pandas as pd
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    trainset = Cub2011(root='datasets/CUB-200/')
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                            shuffle=True, num_workers=args.num_workers, drop_last=True)
-    testset = Cub2011(root='datasets/CUB-200/', train=False)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
-                                            shuffle=True, num_workers=args.num_workers, drop_last=True)
+    PATH = Path('./datasets/CUB_200_2011')
+
+    labels = pd.read_csv(PATH/"image_class_labels.txt", header=None, sep=" ")
+    labels.columns = ["id", "label"]
+
+    train_test = pd.read_csv(PATH/"train_test_split.txt", header=None, sep=" ")
+    train_test.columns = ["id", "is_train"]
+    
+    images = pd.read_csv(PATH/"images.txt", header=None, sep=" ")
+    images.columns = ["id", "name"]
+
+    classes = pd.read_csv(PATH/"classes.txt", header=None, sep=" ")
+    classes.columns = ["id", "class"]
+
+    train_dataset = CUB(PATH, labels, train_test, images, train=True, transform=True)
+    test_dataset = CUB(PATH, labels, train_test, images, train=False, transform=False)
+
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, num_workers=4)
+
+    # trainset = Cub2011(root='datasets/CUB-200/')
+    # train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+    #                                         shuffle=True, num_workers=args.num_workers, drop_last=True)
+    # testset = Cub2011(root='datasets/CUB-200/', train=False)
+    # test_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+    #                                         shuffle=True, num_workers=args.num_workers, drop_last=True)
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=True,
