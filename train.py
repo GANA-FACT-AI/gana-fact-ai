@@ -12,7 +12,7 @@ import pandas as pd
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    PATH = Path('./datasets/CUB_200_2011')
+    PATH = Path('./datasets/CUB_200_2011/CUB_200_2011/')
 
     labels = pd.read_csv(PATH/"image_class_labels.txt", header=None, sep=" ")
     labels.columns = ["id", "label"]

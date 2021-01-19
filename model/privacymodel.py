@@ -41,18 +41,20 @@ class PrivacyModel(pl.LightningModule):
         return output
 
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
-        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        # device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        device = "cpu"
         x, target = batch
-        x = x.type(torch.cuda.FloatTensor)
-        target = target.type(torch.cuda.FloatTensor)
+        x = x.type(torch.FloatTensor).to(device)
+        print(x.shape)
+        target = target.type(torch.FloatTensor).to(device)
         
         I_prime = x if self.random_batch is None else self.random_batch
-        I_prime = I_prime.type(torch.cuda.FloatTensor)
+        I_prime = I_prime.type(torch.FloatTensor).to(device)
 
         self.random_batch = x
 
-        print(f"x: {x.dtype}")
-        print(f"I_prime {I_prime.dtype}")
+        # print(f"x: {x.dtype}")
+        # print(f"I_prime {I_prime.dtype}")
 
         thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
         thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
