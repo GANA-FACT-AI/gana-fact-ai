@@ -11,9 +11,11 @@ class ProcessingUnit(nn.Module):
 
     def forward(self, xr, xi):
         xr, xi = self.conv1(xr, xi)
-        xr, xi = self.relu(xr, xi)
+        c = torch.mean(xr, dim=(2,3))
+        xr, xi = self.relu(xr, xi, c)
         xr, xi = self.conv2(xr, xi)
-        xr, xi = self.relu(xr, xi)
-        xr, xi = invmaxpool2d(xr, xi, 3, 2) #TODO: Set appropriate c value
+        c = torch.mean(xr, dim=(2, 3))
+        xr, xi = self.relu(xr, xi, c)
+        xr, xi = invmaxpool2d(xr, xi, 3, 2)
 
         return xr, xi
