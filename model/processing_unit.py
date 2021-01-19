@@ -6,7 +6,7 @@ class ProcessingUnit(nn.Module):
     def __init__(self):
         super().__init__()
         self.conv1 = ComplexConv2d(384, 256, kernel_size=3, padding=1)
-        self.relu = InvariantReLU(inplace=True)
+        self.relu = InvariantReLU()
         self.conv2 = ComplexConv2d(256, 256, kernel_size=3, padding=1)
 
     def forward(self, xr, xi):

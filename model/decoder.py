@@ -13,7 +13,7 @@ class Decoder(nn.Module):
             nn.Dropout(),
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
-            nn.Linear(4096, 10), #TODO: Fix num classes
+            nn.Linear(4096, 40), #TODO: Fix num classes
             nn.LogSoftmax(dim=1)
         )
 
