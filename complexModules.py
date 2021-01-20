@@ -17,12 +17,14 @@ class InvariantReLU(Module):
 	"""
 	def __init__(self):
 		super(InvariantReLU, self).__init__()
-	def forward(self,input_r,input_i, c = 1):
+	def forward(self,input_r,input_i, cr = 1, ci = 1):
 		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2))
 		print(norm.shape)
-		maxpick = torch.max(norm, c * torch.ones(norm.shape).to(norm.device))
+		cr = cr * torch.ones(cr.shape).to(norm.device)
+		maxpick_r = torch.max(norm, cr)
+		maxpick_i = torch.max(norm, ci * torch.ones(ci.shape).to(norm.device))
 		# print('maxpick', maxpick)
-		return norm/maxpick  * input_r , norm/maxpick * input_i
+		return norm/maxpick_r  * input_r , norm/maxpick_i * input_i
 
 class InvariantBatchNorm(Module):
 	def __init__(self,):
