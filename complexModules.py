@@ -19,10 +19,8 @@ class InvariantReLU(Module):
 		super(InvariantReLU, self).__init__()
 	def forward(self,input_r,input_i, cr = 1, ci = 1):
 		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2))
-		print(norm.shape)
-		cr = cr * torch.ones(cr.shape).to(norm.device)
 		maxpick_r = torch.max(norm, cr)
-		maxpick_i = torch.max(norm, ci * torch.ones(ci.shape).to(norm.device))
+		maxpick_i = torch.max(norm, ci)
 		# print('maxpick', maxpick)
 		return norm/maxpick_r  * input_r , norm/maxpick_i * input_i
 

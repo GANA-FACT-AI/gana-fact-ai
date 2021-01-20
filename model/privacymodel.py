@@ -61,9 +61,10 @@ class PrivacyModel(pl.LightningModule):
 
             # Decoder
             output = self.decoder(xr, xi, thetas)
+            target = target.to(torch.float)
 
             # Loss
-            loss = F.nll_loss(output, target)
+            loss = F.binary_cross_entropy_with_logits(output, target)
             total_loss = loss + gen_loss
 
             accuracy = self.accuracy(output, target)
