@@ -31,7 +31,7 @@ def train(args):
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel(train_loader)
+    model = PrivacyModel(args)
 
     trainer.fit(model, train_loader)
 
@@ -51,8 +51,9 @@ if __name__ == '__main__':
                         choices=['default'])
 
     # Optimizer hyperparameters
-    parser.add_argument('--lr', default=1e-3, type=float,
-                        help='Learning rate to use')
+    parser.add_argument('--lr_gen', default=2e-4, type=float)
+    parser.add_argument('--lr_crit', default=2e-4, type=float)
+    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
 
@@ -69,8 +70,9 @@ if __name__ == '__main__':
     parser.add_argument('--progress_bar', action='store_true',
                         help=('Use a progress bar indicator for interactive experimentation. '
                               'Not to be used in conjuction with SLURM jobs'))
-    parser.add_argument('--debug', default=False, type=float,
+    parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
+    parser.add_argument('--plot_graph', default=False, type=bool)
 
     args = parser.parse_args()
 
