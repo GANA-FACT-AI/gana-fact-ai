@@ -3,7 +3,7 @@ import numpy as np
 import math
 import torch.nn as nn
 
-from resnet import make_layers, BasicBlock
+from resnet import make_layers, BasicBlock, No_BN_Block
 
 
 class Critic(nn.Module):
@@ -14,7 +14,7 @@ class Critic(nn.Module):
         layers.append(nn.LeakyReLU(0.2))
         layers.append(nn.MaxPool2d(2))
 
-        layers.append(make_layers(BasicBlock, 32, 64, 1, stride=2))
+        layers.append(make_layers(No_BN_Block, 32, 64, 1, stride=2))
 
         layers.append(nn.Conv2d(64, 128, 3))
         layers.append(nn.ReLU())
