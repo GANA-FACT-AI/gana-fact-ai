@@ -5,6 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
+from adversary.Adversary import Adversary
 from data.CIFAR10 import load_data
 from model.privacymodel import PrivacyModel
 
@@ -13,7 +14,7 @@ def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
     train_loader, test_loader = load_data(args.batch_size, args.num_workers)
 
-    logger = TensorBoardLogger("logs", name="lightning_logs")
+    logger = TensorBoardLogger("logs", name="adversary")
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=args.checkpoint_callback,
@@ -31,7 +32,8 @@ def train(args):
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel(args)
+    privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    model = Adversary(privacymodel)
 
     trainer.fit(model, train_loader)
 
@@ -51,9 +53,9 @@ if __name__ == '__main__':
                         choices=['default'])
 
     # Optimizer hyperparameters
+    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
-    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
 
@@ -65,7 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', default=0, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
-    parser.add_argument('--log_dir', default='logs', type=str,
+    parser.add_argument('--log_dir', default='logs/adversary', type=str,
                         help='Directory where the PyTorch Lightning logs should be created.')
     parser.add_argument('--progress_bar', action='store_true',
                         help=('Use a progress bar indicator for interactive experimentation. '
@@ -73,6 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_95/checkpoints/epoch=23.ckpt', type=str)
 
     args = parser.parse_args()
 
