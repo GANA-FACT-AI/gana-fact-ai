@@ -27,7 +27,8 @@ def train(args):
                          overfit_batches=args.overfit_batches,
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
-                         limit_val_batches=args.limit_val_batches,
+                         limit_val_batches=0.01,
+                         val_check_interval=0.20
                          )
     trainer.logger._default_hp_metric = None
 
@@ -35,7 +36,7 @@ def train(args):
     privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
     model = Adversary(privacymodel)
 
-    trainer.fit(model, train_loader)
+    trainer.fit(model, test_loader, val_dataloaders=train_loader)
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
@@ -60,7 +61,7 @@ if __name__ == '__main__':
                         help='Minibatch size')
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=500, type=int,
+    parser.add_argument('--epochs', default=40, type=int,
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
@@ -75,7 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_95/checkpoints/epoch=23.ckpt', type=str)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_14/checkpoints/epoch=499.ckpt', type=str)
 
     args = parser.parse_args()
 
