@@ -58,9 +58,9 @@ class LayerNormBlock(nn.Module):
     def __init__(self, in_planes, planes, input_size, stride=1, option='A'):
         super(LayerNormBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn1 = nn.LayerNorm(input_size[1:])
+        #self.bn1 = nn.LayerNorm(input_size[1:])
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn2 = nn.LayerNorm(input_size[1:])
+        #self.bn2 = nn.LayerNorm(input_size[1:])
 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != planes:
@@ -73,12 +73,12 @@ class LayerNormBlock(nn.Module):
             elif option == 'B':
                 self.shortcut = nn.Sequential(
                     nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
-                    nn.LayerNorm([self.expansion * planes].extend(input_size[1:]))
+                    #nn.LayerNorm([self.expansion * planes].extend(input_size[1:]))
                 )
 
     def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
+        out = F.relu(self.conv1(x))
+        out = self.conv2(out)
         out += self.shortcut(x)
         out = F.relu(out)
         return out
