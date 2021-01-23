@@ -25,6 +25,7 @@ class PrivacyModel(pl.LightningModule):
         self.lr_model = hyperparams.lr_model
 
         self.plot_graph = hyperparams.plot_graph
+        self.lambda_ = hyperparams.lambda_
 
         # needed to fix logging bug
         self.loss = None
@@ -94,15 +95,15 @@ class PrivacyModel(pl.LightningModule):
             self.log_critic_gradients = True
 
             a = self.wgan.generator.encode(x)
-            self.gradient_penalty = self.wgan.critic.compute_gradient_penalty(xr, xi, a)
+            self.gradient_penalty = self.wgan.critic.compute_gradient_penalty(xr.data, xi.data, a.data)
             self.log_values()
             return self.crit_loss + 10 * self.gradient_penalty
 
     def configure_optimizers(self):
         optimizer_all = torch.optim.Adam(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters())
                                          + list(self.decoder.parameters()), lr=self.lr_model)
-        optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen)
-        optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit)
+        optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen, betas=(0.5, 0.999))
+        optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit, betas=(0.5, 0.999))
         return (
             {'optimizer': optimizer_all, 'frequency': 1},
             {'optimizer': optimizer_generator, 'frequency': 1},
@@ -118,6 +119,7 @@ class PrivacyModel(pl.LightningModule):
 
     def training_epoch_end(self, outputs: List[Any]) -> None:
         self.log_grads = True
+        return
         for name, params in self.named_parameters():
             self.logger.experiment.add_histogram(name, params, self.current_epoch)
 
@@ -131,7 +133,7 @@ class PrivacyModel(pl.LightningModule):
             for name, params in self.named_parameters():
                 if params.grad is not None:
                     self.logger.experiment.add_scalar("grad_norm", torch.norm(params.grad))
-
+        return
         if self.log_grads:
             for name, params in self.named_parameters():
                 if params.grad is not None:

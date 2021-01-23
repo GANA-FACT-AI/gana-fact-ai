@@ -14,7 +14,7 @@ class Critic(nn.Module):
         layers.append(nn.LeakyReLU(0.2))
         layers.append(nn.MaxPool2d(2))
 
-        layers.append(make_layers(LayerNormBlock, 32, 64, input_size=[1, 64, 8, 8], num_blocks=1, stride=2))
+        layers.append(make_layers(LayerNormBlock, 32, 64, input_size=[1, 64, 8, 8], num_blocks=5, stride=2))
 
         layers.append(nn.Conv2d(64, 128, 3))
         layers.append(nn.ReLU())
