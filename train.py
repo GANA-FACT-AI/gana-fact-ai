@@ -73,6 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
+    parser.add_argument('--lambda_', default=10, type=int)
 
     args = parser.parse_args()
 
