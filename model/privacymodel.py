@@ -2,9 +2,10 @@ from typing import List, Any
 
 import torch
 import math
-import numpy as np
 import pytorch_lightning as pl
 import torch.nn.functional as F
+
+from torch.nn.modules.module import ModuleAttributeError
 
 from model.decoder import Decoder
 from model.processing_unit import ProcessingUnit
@@ -12,25 +13,39 @@ from model.wgan import WGAN
 
 
 class PrivacyModel(pl.LightningModule):
-    def __init__(self, *args):
+    def __init__(self, hyperparams):
         super().__init__()
-
-        self.wgan = WGAN(k=8)
+        self.wgan = WGAN(k=8, log_fn=self.log)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
         self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
+        self.lr_gen = hyperparams.lr_gen
+        self.lr_crit = hyperparams.lr_crit
+        self.lr_model = hyperparams.lr_model
 
-    def forward(self, batch):
-        device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        x, _ = batch
+        self.plot_graph = hyperparams.plot_graph
+
+        # needed to fix logging bug
+        self.loss = None
+        self.last_accuracy = None
+        self.log_grads = True
+        self.log_critic_gradients = False
+        self.crit_loss = None
+        self.gen_loss = None
+
+    @staticmethod
+    def thetas(x):
+        thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
+        return thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
+
+    def forward(self, x):
         I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
 
-        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
-        thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
+        thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
-        xr, xi, _ = self.wgan.generate(x, I_prime, thetas)
+        xr, xi, _ = self.wgan.generator(x, I_prime, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
@@ -41,8 +56,15 @@ class PrivacyModel(pl.LightningModule):
         return output
 
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
-        # device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        device = "cpu"
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        try:
+            self.gradient_penalty
+        except ModuleAttributeError:
+            self.gradient_penalty = torch.tensor(0).to(device)
+        if self.plot_graph:
+            self.logger.experiment.add_graph(self, torch.rand(1, 3, 32, 32).to(device))
+            self.plot_graph = False
+
         x, target = batch
         x = x.type(torch.FloatTensor).to(device)
         print(x.shape)
@@ -53,14 +75,10 @@ class PrivacyModel(pl.LightningModule):
 
         self.random_batch = x
 
-        # print(f"x: {x.dtype}")
-        # print(f"I_prime {I_prime.dtype}")
-
-        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
-        thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
+        thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
-        xr, xi, crit_loss, gen_loss = self.wgan.forward(x, I_prime, thetas)
+        xr, xi, self.crit_loss, self.gen_loss = self.wgan(x, I_prime, thetas)
 
         self.log("Critic Loss: ", crit_loss)
         self.log("Gen Loss: ", gen_loss)
@@ -73,51 +91,58 @@ class PrivacyModel(pl.LightningModule):
             output = self.decoder(xr, xi, thetas)
 
             # Loss
-            loss = F.nll_loss(output, target)
-            total_loss = loss + gen_loss
+            self.loss = F.nll_loss(output, target)
+            self.last_accuracy = self.accuracy(output, target)
 
-            accuracy = self.accuracy(output, target)
-
-            self.logger.experiment.add_scalar("Accuracy", accuracy)
-            self.logger.experiment.add_scalar("Regular Loss", loss)
-
-            if batch_idx % 50 == 0:
-                print("Generator Loss: ", gen_loss)
-                print("Total Loss: ", total_loss)  # TODO: move to logger
-                print('Train Acc', accuracy)
-            return total_loss
+            self.log_values()
+            return self.loss
+        elif optimizer_idx == 1:
+            self.log_values()
+            return self.gen_loss
         else:
-            if batch_idx % 50 == 0:
-                print("Critic Loss: ", crit_loss)  # TODO: move to logger
-            return crit_loss
+            self.log_critic_gradients = True
+
+            a = self.wgan.generator.encode(x)
+            self.gradient_penalty = self.wgan.critic.compute_gradient_penalty(xr, xi, a)
+            self.log_values()
+            return self.crit_loss + 10 * self.gradient_penalty
 
     def configure_optimizers(self):
-        optimizer_gen = torch.optim.RMSprop(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()), lr=0.00005)
-        optimizer_crit = torch.optim.RMSprop(self.wgan.critic.parameters(), lr=0.00005)
+        optimizer_all = torch.optim.Adam(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters())
+                                         + list(self.decoder.parameters()), lr=self.lr_model)
+        optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen)
+        optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit)
         return (
-            {'optimizer': optimizer_gen, 'frequency': 1},
+            {'optimizer': optimizer_all, 'frequency': 1},
+            {'optimizer': optimizer_generator, 'frequency': 1},
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
 
-    '''
+    def log_values(self):
+        self.log("generator_loss", self.gen_loss)
+        self.log("critic_loss", self.crit_loss)
+        self.log("classifier_loss", self.loss)
+        self.log("accuracy", self.last_accuracy)
+        self.log("gradient_penalty", self.gradient_penalty)
+
     def training_epoch_end(self, outputs: List[Any]) -> None:
+        self.log_grads = True
         for name, params in self.named_parameters():
             self.logger.experiment.add_histogram(name, params, self.current_epoch)
-    '''
-    def on_after_backward(self):
-        # example to inspect gradient information in tensorboard
-        if self.trainer.global_step % 389 == 0:  # don't make the tf file huge
-            params = self.state_dict()
-            for k, v in params.items():
-                grads = v
-                name = k
-                self.logger.experiment.add_histogram(tag=name, values=grads, global_step=self.trainer.global_step)
-                #self.logger.experiment.add_histogram(tag="{}_gradients".format(name), values=grads.grad, global_step=self.trainer.global_step)
-            #self.logger.experiment.add_histogram(tag="conv1_weight_grads", values=self.wgan.generator.conv1.weight.grad, global_step=self.trainer.global_step)
 
+    def on_after_backward(self) -> None:
+        if self.log_critic_gradients:
+            for name, params in self.wgan.critic.named_parameters():
+                if params.grad is not None:
+                    self.logger.experiment.add_scalar("critic_grad_norm", torch.norm(params.grad)) # TODO: use self.log
+            self.log_critic_gradients = False
+        else:
+            for name, params in self.named_parameters():
+                if params.grad is not None:
+                    self.logger.experiment.add_scalar("grad_norm", torch.norm(params.grad))
 
-    def validation_step(self):
-        pass
-
-    def test_step(self):
-        pass
+        if self.log_grads:
+            for name, params in self.named_parameters():
+                if params.grad is not None:
+                    self.logger.experiment.add_histogram(name + " Gradients", params.grad, self.current_epoch)
+            self.log_grads = False

@@ -30,13 +30,18 @@ from complexModules import *
 
 from torch.autograd import Variable
 
-def make_layers(block, in_planes, planes, num_blocks, stride):
+
+def make_layers(block, in_planes, planes, num_blocks, stride, input_size=None):
     strides = [stride] + [1]*(num_blocks-1)
     layers = []
     for stride in strides:
-        layers.append(block(in_planes, planes, stride))
+        if input_size:
+            layers.append(block(in_planes, planes, input_size, stride))
+        else:
+            layers.append(block(in_planes, planes, stride))
         in_planes = planes * block.expansion
     return nn.Sequential(*layers)
+
 
 class LambdaLayer(nn.Module):
     def __init__(self, lambd):
@@ -45,6 +50,38 @@ class LambdaLayer(nn.Module):
 
     def forward(self, x):
         return self.lambd(x)
+
+
+class LayerNormBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, input_size, stride=1, option='A'):
+        super(LayerNormBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        #self.bn1 = nn.LayerNorm(input_size[1:])
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        #self.bn2 = nn.LayerNorm(input_size[1:])
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            if option == 'A':
+                """
+                For CIFAR10 ResNet paper uses option A.
+                """
+                self.shortcut = LambdaLayer(lambda x:
+                                            F.pad(x[:, :, ::2, ::2], (0, 0, 0, 0, planes//4, planes//4), "constant", 0))
+            elif option == 'B':
+                self.shortcut = nn.Sequential(
+                    nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                    #nn.LayerNorm([self.expansion * planes].extend(input_size[1:]))
+                )
+
+    def forward(self, x):
+        out = F.relu(self.conv1(x))
+        out = self.conv2(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
 
 
 class BasicBlock(nn.Module):
