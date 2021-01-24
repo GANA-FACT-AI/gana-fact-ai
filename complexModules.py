@@ -20,12 +20,12 @@ class InvariantReLU(Module):
 	"""
 	def __init__(self):
 		super(InvariantReLU, self).__init__()
-	def forward(self,input_r,input_i, cr = 1, ci = 1):
+	def forward(self,input_r,input_i):
 		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2))
-		maxpick_r = torch.max(norm, cr)
-		maxpick_i = torch.max(norm, ci)
+		c = torch.mean(norm, dim=(0, 2, 3)).view(1, 256, 1, 1)
+		maxpick = torch.max(norm, c)
 		# print('maxpick', maxpick)
-		return norm/maxpick_r  * input_r , norm/maxpick_i * input_i
+		return norm/maxpick  * input_r , norm/maxpick * input_i
 
 class InvariantBatchNorm(Module):
 	def __init__(self,):
