@@ -61,8 +61,8 @@ class Critic(nn.Module):
         real_score = self.score(a)
 
         # for each sample, we want to generate k negative examples
-        xr = xr.repeat(self.k, 1, 1, 1)
-        xi = xi.repeat(self.k, 1, 1, 1)
+        xr = xr.repeat(self.k-1, 1, 1, 1)
+        xi = xi.repeat(self.k-1, 1, 1, 1)
 
         # rotate every sample by a random angle, the result should be a senseless feature vector
         a_prime = Critic.rotate_back(xr, xi)
