@@ -1,5 +1,9 @@
 import torch
 from torch.nn import Module
+import torch.nn as nn
+from torch.nn import Module, Parameter, init, Sequential
+from torch.nn import Conv2d, Linear, BatchNorm1d, BatchNorm2d
+from torch.nn import ConvTranspose2d
 
 from torch.nn.functional import  max_pool2d
 
@@ -14,15 +18,14 @@ class InvariantReLU(Module):
 	parameter c:
 		c is used in denominator as in the original paper, default: c = 1  
 	"""
-	def __init__(self, c = 1):
+	def __init__(self):
 		super(InvariantReLU, self).__init__()
-		self.c = c
-
-	def forward(self, input_r, input_i):
-		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2) + eps)
-		maxpick = torch.max(norm, self.c * torch.ones(norm.shape).to(norm.device))
-		return norm / maxpick * input_r, norm / maxpick * input_i
-
+	def forward(self,input_r,input_i, cr = 1, ci = 1):
+		norm = torch.sqrt(input_r.pow(2) + input_i.pow(2))
+		maxpick_r = torch.max(norm, cr)
+		maxpick_i = torch.max(norm, ci)
+		# print('maxpick', maxpick)
+		return norm/maxpick_r  * input_r , norm/maxpick_i * input_i
 
 class InvariantBatchNorm(Module):
 	def __init__(self,):
@@ -33,8 +36,8 @@ class InvariantBatchNorm(Module):
 		return input_r/b_avg, input_i/b_avg
 
 
-def invmaxpool2d(input_r, input_i, bn_func, kernel_size, stride=None, padding=0,
-				 dilation=1, ceil_mode=False):
+def invmaxpool2d(input_r, input_i, kernel_size, stride=None, padding=0,
+                                dilation=1, ceil_mode=False):
 	"""
 	Rotation indifferent maxpool on 2d grid
 	"""
@@ -51,3 +54,23 @@ def invmaxpool2d(input_r, input_i, bn_func, kernel_size, stride=None, padding=0,
 	imag_o2 = torch.gather(x_imag, size_num, torch.flatten(i, size_num)).view(o.size())
 	# 
 	return real_o2, imag_o2
+
+def _weights_init(m):
+    classname = m.__class__.__name__
+    #print(classname)
+    if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
+        init.kaiming_normal_(m.weight)
+
+
+
+
+    
+
+
+
+
+
+
+
+
+        

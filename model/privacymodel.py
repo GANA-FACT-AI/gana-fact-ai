@@ -66,13 +66,11 @@ class PrivacyModel(pl.LightningModule):
             self.plot_graph = False
 
         x, target = batch
-        x = x.type(torch.FloatTensor).to(device)
-        print(x.shape)
-        target = target.type(torch.FloatTensor).to(device)
-        
-        I_prime = x if self.random_batch is None else self.random_batch
-        I_prime = I_prime.type(torch.FloatTensor).to(device)
+        x = x.to(torch.float)
+        #target = target.type(torch.FloatTensor)
 
+        I_prime = x if self.random_batch is None else self.random_batch
+        I_prime = I_prime.to(torch.float)
         self.random_batch = x
 
         thetas = PrivacyModel.thetas(x)

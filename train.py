@@ -30,8 +30,8 @@ def train(args):
     train_dataset = CUB(PATH, labels, train_test, images, train=True, transform=True)
     test_dataset = CUB(PATH, labels, train_test, images, train=False, transform=False)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, num_workers=4)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, drop_last=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.num_workers)
 
     # trainset = Cub2011(root='datasets/CUB-200/')
     # train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--lr_model', default=1e-3, type=float)
-    parser.add_argument('--batch_size', default=128, type=int,
+    parser.add_argument('--batch_size', default=12, type=int,
                         help='Minibatch size')
 
     # Other hyperparameters

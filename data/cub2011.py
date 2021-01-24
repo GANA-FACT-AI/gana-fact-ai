@@ -94,7 +94,7 @@ class CUB(Dataset):
         else:
             x = cv2.resize(x, (224,224))
         x = self.normalize(x)
-        x =  np.rollaxis(x, 2) # To meet torch's input specification(c*H*W) 
+        x = np.rollaxis(x, 2) # To meet torch's input specification(c*H*W)
         return x,y
 
     

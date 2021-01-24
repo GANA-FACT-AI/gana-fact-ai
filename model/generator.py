@@ -23,6 +23,7 @@ class Generator(nn.Module):
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1),
             nn.ReLU()
         )
+        #self.apply(_weights_init)
 
     def encode(self, x):
         return self.layers(x)
