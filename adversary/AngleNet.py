@@ -5,7 +5,7 @@ import torch.nn as nn
 from resnet import make_layers, LayerNormBlock
 
 
-class Angle(nn.Module):
+class AngleNet(nn.Module):
     def __init__(self):
         super().__init__()
         layers = list()

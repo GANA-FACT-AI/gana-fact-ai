@@ -4,18 +4,18 @@ import pytorch_lightning as pl
 import torchvision
 from torch.optim import Adam
 
-from adversary.adversary_critic import Angle
+from adversary.AngleNet import AngleNet
 
 
-class Discriminator(pl.LightningModule):
+class AnglePred(pl.LightningModule):
     def __init__(self, privacy_model):
-        super(Discriminator, self).__init__()
-        self.critic = Angle()
+        super(AnglePred, self).__init__()
+        self.angle_net = AngleNet()
         self.privacy_model = privacy_model
         self.random_batch = None
 
     def forward(self, xr, xi):
-        angle = self.critic(torch.cat((xr, xi), 1))
+        angle = self.angle_net(torch.cat((xr, xi), 1))
         xr = torch.cos(-angle) * xr - torch.sin(-angle) * xi
         xi = torch.sin(-angle) * xr + torch.cos(-angle) * xi
         return xr, xi
@@ -30,7 +30,7 @@ class Discriminator(pl.LightningModule):
         with torch.no_grad():
             xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, thetas)
 
-        angle = self.critic(torch.cat((xr, xi), 1))
+        angle = self.angle_net(torch.cat((xr, xi), 1))
 
         loss = torch.mean(torch.abs(thetas - angle))
 
@@ -41,4 +41,4 @@ class Discriminator(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return Adam(self.critic.parameters(), lr=1e-4)  # given in the UNet-paper
+        return Adam(self.angle_net.parameters(), lr=1e-4)  # given in the UNet-paper
