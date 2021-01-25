@@ -8,10 +8,11 @@ from adversary.Unet import UNet
 
 
 class Adversary(pl.LightningModule):
-    def __init__(self, privacy_model):
+    def __init__(self, privacy_model, discriminator=None):
         super(Adversary, self).__init__()
         self.unet = UNet(32, 3)  # TODO: right number of input channels
         self.privacy_model = privacy_model
+        self.discriminator = discriminator
         self.loss = nn.MSELoss()  # TODO: is this the right loss function? In the paper, they used a different one, but they did segmentation and we image generation
         self.random_batch = None
         self.img_counter = 0
@@ -23,6 +24,8 @@ class Adversary(pl.LightningModule):
     def gen_imgs(self, x, I_prime):
         with torch.no_grad():
             xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, self.privacy_model.thetas(x))
+            if self.discriminator is not None:
+                xr, xi = self.discriminator(xr, xi)
             return self(xr, xi)
 
     def training_step(self, batch, batch_idx):
@@ -33,6 +36,8 @@ class Adversary(pl.LightningModule):
 
         with torch.no_grad():
             xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, thetas)
+            if self.discriminator is not None:
+                xr, xi = self.discriminator(xr, xi)
 
         output = self(xr, xi)
 
