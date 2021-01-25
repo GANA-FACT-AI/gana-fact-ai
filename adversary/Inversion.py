@@ -7,9 +7,9 @@ from torch.optim import Adam
 from adversary.Unet import UNet
 
 
-class Adversary(pl.LightningModule):
+class Inversion(pl.LightningModule):
     def __init__(self, privacy_model, discriminator=None):
-        super(Adversary, self).__init__()
+        super(Inversion, self).__init__()
         self.unet = UNet(32, 3)  # TODO: right number of input channels
         self.privacy_model = privacy_model
         self.discriminator = discriminator

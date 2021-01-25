@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.Discriminator import Discriminator
+from adversary.AnglePred import AnglePred
 from data.CIFAR10 import load_data
 from model.privacymodel import PrivacyModel
 
@@ -34,7 +34,7 @@ def train(args):
 
     pl.seed_everything(args.seed)  # To be reproducible
     privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    model = Discriminator(privacymodel)
+    model = AnglePred(privacymodel)
 
     trainer.fit(model, train_loader, val_dataloaders=test_loader)
 
