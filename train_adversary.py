@@ -76,6 +76,7 @@ if __name__ == '__main__':
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
     parser.add_argument('--checkpoint', default='logs/lightning_logs/version_95/checkpoints/epoch=23.ckpt', type=str)
+    parser.add_argument('--lambda_', default=10, type=int)
 
     args = parser.parse_args()
 
