@@ -5,17 +5,16 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.Adversary import Adversary
+from adversary.Discriminator import Discriminator
 from data.CIFAR10 import load_data
 from model.privacymodel import PrivacyModel
-from adversary.Discriminator import Discriminator
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
     train_loader, test_loader = load_data(args.batch_size, args.num_workers)
 
-    logger = TensorBoardLogger("logs", name="adversary")
+    logger = TensorBoardLogger("logs", name="angle_predictor")
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=args.checkpoint_callback,
@@ -28,18 +27,14 @@ def train(args):
                          overfit_batches=args.overfit_batches,
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
-                         limit_val_batches=0.05,
+                         limit_val_batches=0.01,
                          val_check_interval=0.20
                          )
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
     privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    if args.predict_angle:
-        discriminator = Discriminator.load_from_checkpoint(args.checkpoint_disc, privacy_model=privacymodel)
-        model = Adversary(privacymodel, discriminator)
-    else:
-        model = Adversary(privacymodel)
+    model = Discriminator(privacymodel)
 
     trainer.fit(model, train_loader, val_dataloaders=test_loader)
 
@@ -82,8 +77,6 @@ if __name__ == '__main__':
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
     parser.add_argument('--checkpoint', default='logs/lightning_logs/version_14/checkpoints/epoch=499.ckpt', type=str)
-    parser.add_argument('--checkpoint_disc', default='logs/angle_predictor/version_3/checkpoints/epoch=39.ckpt', type=str)
-    parser.add_argument('--predict_angle', default=False, type=bool)
 
     args = parser.parse_args()
 
