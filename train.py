@@ -5,13 +5,14 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from data.CIFAR10 import load_data
+from datasets import load_data
 from model.privacymodel import PrivacyModel
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, test_loader = load_data(args.batch_size, args.num_workers)
+
+    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
 
     logger = TensorBoardLogger("logs", name="lightning_logs")
 
@@ -49,6 +50,8 @@ if __name__ == '__main__':
     parser.add_argument('--model', default='default', type=str,
                         help='What model to use in the VAE',
                         choices=['default'])
+    parser.add_argument('--dataset', default='cifar10', type=str,
+                        help='Dataset to train the model on.')
 
     # Optimizer hyperparameters
     parser.add_argument('--lr_gen', default=1e-4, type=float)
