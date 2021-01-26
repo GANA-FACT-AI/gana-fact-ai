@@ -55,6 +55,8 @@ if __name__ == '__main__':
     # Optimizer hyperparameters
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--lr_gen', default=1e-4, type=float)
+    parser.add_argument('--beta1', default=0.5, type=float)
+    parser.add_argument('--beta2', default=0.999, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')

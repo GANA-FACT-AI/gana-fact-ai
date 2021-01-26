@@ -14,6 +14,7 @@ class Adversary(pl.LightningModule):
         self.privacy_model = privacy_model
         self.loss = nn.MSELoss()  # TODO: is this the right loss function? In the paper, they used a different one, but they did segmentation and we image generation
         self.random_batch = None
+        self.gen_img_number = 0
 
     def forward(self, xr, xi):
         concats = torch.cat((xr, xi), 1)
@@ -50,5 +51,6 @@ class Adversary(pl.LightningModule):
         imgs = self.gen_imgs(x, I_prime)
         img_grid_orig = torchvision.utils.make_grid(x/2 + 0.5)
         img_grid_gen = torchvision.utils.make_grid(imgs/2 + 0.5)
-        self.logger.experiment.add_image('original images', img_grid_orig, batch_idx)
-        self.logger.experiment.add_image('reconstructed images', img_grid_gen, batch_idx)
+        self.logger.experiment.add_image('original images', img_grid_orig, self.gen_img_number)
+        self.logger.experiment.add_image('reconstructed images', img_grid_gen, self.gen_img_number)
+        self.gen_img_number += 1
