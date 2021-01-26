@@ -5,17 +5,21 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.Inversion import Inversion
-from data.CIFAR10 import load_data
+from adversary.inversion import Inversion
+from adversary.inference import Inference
 from model.privacymodel import PrivacyModel
-from adversary.AnglePred import AnglePred
+from adversary.angle_pred import AnglePred
+from datasets import load_data
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, test_loader = load_data(args.batch_size, args.num_workers)
 
-    logger = TensorBoardLogger("logs", name="inversion")
+    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
+
+    # train_loader, test_loader = load_data(args.batch_size, args.num_workers)
+
+    logger = TensorBoardLogger("logs", name=args.attack_model)
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=args.checkpoint_callback,
@@ -31,17 +35,36 @@ def train(args):
                          limit_val_batches=0.05,
                          val_check_interval=0.20
                          )
+
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    if args.predict_angle:
-        angle_pred = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacymodel)
-        model = Inversion(privacymodel, angle_pred)
-    else:
-        model = Inversion(privacymodel)
+    privacy_model = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
 
-    trainer.fit(model, train_loader, val_dataloaders=test_loader)
+    # Inversion attacks
+    if args.attack_model == 'inversion1':
+        angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, 
+                                                                privacy_model=privacy_model)
+        adversary_model = Inversion(privacy_model, angle_pred_model)
+    elif args.attack_model == 'inversion2':
+        adversary_model = Inversion(privacy_model)
+
+    # Inference attacks
+    elif args.attack_model == 'inference1':
+        # angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, 
+        #                                                         privacy_model=privacy_model)
+        # inversion_model = Inversion.load_from_checkpoint(args.checkpoint_inversion, 
+        #                                                     privacy_model=privacy_model, 
+        #                                                     angle_pred_model=angle_pred_model)
+        adversary_model = Inference()
+    elif args.attack_model == 'inference2':
+        pass
+    elif args.attack_model == 'inference3':
+        pass
+    elif args.attack_model == 'inference4':
+        pass
+    
+    trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
@@ -54,9 +77,10 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='default', type=str,
-                        help='What model to use in the VAE',
-                        choices=['default'])
+    parser.add_argument('--attack_model', default='inversion1', type=str,
+                        help='What type of attack should be performed.')
+    parser.add_argument('--dataset', default='cifar10', type=str,
+                        help='Dataset to train the model on.')
 
     # Optimizer hyperparameters
     parser.add_argument('--lr_model', default=1e-3, type=float)
@@ -67,9 +91,9 @@ if __name__ == '__main__':
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=40, type=int,
-                        help='Max number of epochs')
+                        help='Max number of epochs.')
     parser.add_argument('--seed', default=42, type=int,
-                        help='Seed to use for reproducing results')
+                        help='Seed to use for reproducing results.')
     parser.add_argument('--num_workers', default=0, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
