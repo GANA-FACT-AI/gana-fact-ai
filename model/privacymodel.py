@@ -23,6 +23,8 @@ class PrivacyModel(pl.LightningModule):
         self.lr_gen = hyperparams.lr_gen
         self.lr_crit = hyperparams.lr_crit
         self.lr_model = hyperparams.lr_model
+        self.beta1 = hyperparams.beta1
+        self.beta2 = hyperparams.beta2
 
         self.plot_graph = hyperparams.plot_graph
         self.lambda_ = hyperparams.lambda_
@@ -102,12 +104,12 @@ class PrivacyModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer_all = torch.optim.Adam(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters())
                                          + list(self.decoder.parameters()), lr=self.lr_model)
-        optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen, betas=(0.5, 0.999))
-        optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit, betas=(0.5, 0.999))
+        optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen, betas=(self.beta1, self.beta2))
+        optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit, betas=(self.beta1, self.beta2))
         return (
             {'optimizer': optimizer_all, 'frequency': 1},
             {'optimizer': optimizer_generator, 'frequency': 1},
-            {'optimizer': optimizer_crit, 'frequency': 5}
+            {'optimizer': optimizer_crit, 'frequency': 7}
         )
 
     def log_values(self):

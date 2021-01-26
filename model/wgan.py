@@ -19,6 +19,6 @@ class WGAN(nn.Module):
 
         self.log("real_score_mean", torch.mean(real_score))
         self.log("fake_score_mean", torch.mean(fake_score))
-        self.log("real_score_var", torch.var(real_score))
-        self.log("fake_score_var", torch.var(fake_score))
+        self.log("real_score_var", torch.std(real_score))
+        self.log("fake_score_var", torch.std(fake_score))
         return xr, xi, critic_loss, generator_loss

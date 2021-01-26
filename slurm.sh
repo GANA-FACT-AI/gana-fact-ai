@@ -24,4 +24,11 @@ conda activate factai
 # Activate your environment
 # source activate ...
 # Run your code
-srun python3 train.py
+srun python3 train.py --epochs 20 --lr_gen 1e-4 --lr_crit 1e-4
+srun python3 train.py --epochs 20 --lr_gen 1e-3 --lr_crit 1e-3
+srun python3 train.py --epochs 20 --lr_gen 1e-5 --lr_crit 1e-5
+srun python3 train.py --epochs 20 --lr_gen 1e-4 --lr_crit 4e-4
+srun python3 train.py --epochs 20 --lr_gen 4e-4 --lr_crit 1e-4
+srun python3 train.py --epochs 20 --lr_gen 1e-5 --lr_crit 4e-5
+srun python3 train.py --epochs 20 --lr_gen 4e-5 --lr_crit 1e-5
+

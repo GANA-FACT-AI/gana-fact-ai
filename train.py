@@ -56,6 +56,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--beta1', default=0.5, type=float)
+    parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=500, type=int,

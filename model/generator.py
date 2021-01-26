@@ -6,13 +6,16 @@ from resnet import BasicBlock, make_layers
 class Generator(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(16)
-        self.relu = nn.ReLU()
-        self.layers = make_layers(BasicBlock, 16, 16, 3, stride=1)
+        layers = list()
+        layers.append(nn.LayerNorm([3, 32, 32]))
+        layers.append(nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1))
+        layers.append(nn.ReLU())
+        layers.append(nn.MaxPool2d(2))
+        layers.append(nn.LayerNorm([16, 16, 16]))
+        layers.append(nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1))
+        self.layers = nn.Sequential(*layers)
 
     def encode(self, x):
-        x = self.relu(self.bn1(self.conv1(x)))
         return self.layers(x)
 
     def forward(self, x, I_prime, theta):
