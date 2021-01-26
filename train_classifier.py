@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.AnglePred import AnglePred
+from adversary.classifier import Classifier
 from datasets import load_data
 from model.privacymodel import PrivacyModel
 
@@ -14,7 +14,7 @@ def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
     train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
 
-    logger = TensorBoardLogger("logs", name="angle_predictor")
+    logger = TensorBoardLogger("logs", name="classifier")
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=args.checkpoint_callback,
@@ -34,7 +34,7 @@ def train(args):
 
     pl.seed_everything(args.seed)  # To be reproducible
     privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    model = AnglePred(privacymodel)
+    model = Classifier()
 
     trainer.fit(model, train_loader, val_dataloaders=test_loader)
 

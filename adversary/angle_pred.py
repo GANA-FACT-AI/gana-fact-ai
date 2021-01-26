@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torchvision
 from torch.optim import Adam
 
-from adversary.AngleNet import AngleNet
+from adversary.angle_net import AngleNet
 
 
 class AnglePred(pl.LightningModule):
