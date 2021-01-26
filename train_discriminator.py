@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.AnglePred import AnglePred
+from adversary.angle_pred import AnglePred
 from datasets import load_data
 from model.privacymodel import PrivacyModel
 
