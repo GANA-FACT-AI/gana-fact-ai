@@ -19,13 +19,13 @@ class Critic(nn.Module):
         super().__init__()
         layers = list()
         layers.append(nn.Conv2d(256, 256, 3))
-        layers.append(nn.LeakyReLU(0.2))
+        layers.append(nn.LeakyReLU(0.2, inplace=True))
         layers.append(nn.MaxPool2d(2))
 
         layers.append(make_layers(BasicBlock, 256, 256, num_blocks=1, stride=1))
 
         layers.append(nn.Conv2d(256, 256, 3))
-        layers.append(nn.ReLU())
+        layers.append(nn.ReLU(inplace=True))
 
         layers.append(nn.AvgPool2d(6))
         layers.append(nn.Flatten())

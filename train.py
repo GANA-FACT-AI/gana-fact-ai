@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from data.cub2011 import CUB
+from data.CIFAR10 import load_data
 from model.privacymodel import PrivacyModel
 from pathlib import Path
 import pandas as pd
@@ -30,8 +31,10 @@ def train(args):
     train_dataset = CUB(PATH, labels, train_test, images, train=True, transform=True)
     test_dataset = CUB(PATH, labels, train_test, images, train=False, transform=False)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, drop_last=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.num_workers)
+    #train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, drop_last=True)
+    #test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.num_workers)
+
+    train_loader, test_loader = load_data(args.batch_size, args.num_workers)
 
     # trainset = Cub2011(root='datasets/CUB-200/')
     # train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
@@ -83,12 +86,12 @@ if __name__ == '__main__':
     # Optimizer hyperparameters
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
-    parser.add_argument('--lr_model', default=1e-3, type=float)
-    parser.add_argument('--batch_size', default=4, type=int,
+    parser.add_argument('--lr_model', default=1e-2, type=float)
+    parser.add_argument('--batch_size', default=12, type=int,
                         help='Minibatch size')
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=500, type=int,
+    parser.add_argument('--epochs', default=1, type=int,
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')

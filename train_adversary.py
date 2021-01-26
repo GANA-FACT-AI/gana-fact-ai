@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
-    parser.add_argument('--batch_size', default=128, type=int,
+    parser.add_argument('--batch_size', default=4, type=int,
                         help='Minibatch size')
 
     # Other hyperparameters
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_14/checkpoints/epoch=499.ckpt', type=str)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_15/checkpoints/epoch=0.ckpt', type=str)
 
     args = parser.parse_args()
 

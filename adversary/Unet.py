@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from torchvision import transforms
+import torch.nn.functional as F
 
 
 class Down(nn.Module):
@@ -88,7 +90,14 @@ class UNet(nn.Module):
 
         self.out = nn.Conv2d(64, self.n_classes, kernel_size=1)
 
+        self.down_conv_0 = nn.Conv2d(512, 32, kernel_size=3, padding=1)
+
     def forward(self, x):
+        # Pre Unet scaling
+        x = F.interpolate(x, 224)
+        x = self.down_conv_0(x)
+
+        # Unet
         x1 = self.donw_conv_1(x)
         x2 = self.max_pool_2x2(x1)
         x3 = self.down_conv_2(x2)

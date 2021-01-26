@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torchvision
 from torch.optim import Adam
 
-from adversary.Unet import UNet
+from adversary.unet import UNet
 
 
 class Adversary(pl.LightningModule):

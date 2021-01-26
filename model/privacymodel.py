@@ -23,6 +23,7 @@ class PrivacyModel(pl.LightningModule):
         self.lr_gen = hyperparams.lr_gen
         self.lr_crit = hyperparams.lr_crit
         self.lr_model = hyperparams.lr_model
+        self.batch_idx = 0
 
         self.plot_graph = hyperparams.plot_graph
 
@@ -55,7 +56,7 @@ class PrivacyModel(pl.LightningModule):
 
         return output
 
-    def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
+    def training_step(self, batch, batch_idx, *args, **kwargs):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         try:
             self.gradient_penalty
@@ -64,14 +65,16 @@ class PrivacyModel(pl.LightningModule):
         if self.plot_graph:
             self.logger.experiment.add_graph(self, torch.rand(1, 3, 32, 32).to(device))
             self.plot_graph = False
+        self.batch_idx = batch_idx
 
         x, target = batch
-        x = x.to(torch.float)
+        #x = x.to(torch.float)
         #target = target.type(torch.FloatTensor)
 
         I_prime = x if self.random_batch is None else self.random_batch
-        I_prime = I_prime.to(torch.float)
+        #I_prime = I_prime.to(torch.float)
         self.random_batch = x
+
 
         thetas = PrivacyModel.thetas(x)
 
@@ -81,42 +84,44 @@ class PrivacyModel(pl.LightningModule):
         self.log("Critic Loss: ", self.crit_loss)
         self.log("Gen Loss: ", self.gen_loss)
 
-        if optimizer_idx == 0:
-            # Processing Unit
-            xr, xi = self.processing_unit(xr, xi)
+        #if optimizer_idx == 0:
+        # Processing Unit
+        xr, xi = self.processing_unit(xr, xi)
 
-            # Decoder
-            output = self.decoder(xr, xi, thetas)
-
-            # Loss
-            self.loss = F.nll_loss(output, target)
-            print("Regular loss: ", self.loss)
-            self.last_accuracy = self.accuracy(output, target)
-
-            self.log_values()
-            return self.loss
+        # Decoder
+        output = self.decoder(xr, xi, thetas)
+        #print(target)
+        #print("Output mean: ", torch.mean(output))
+        #print(target.shape)
+        #print(output.shape)
+        # Loss
+        self.loss = F.nll_loss(output, target)
+        #print("Regular loss: ", self.loss)
+        self.last_accuracy = self.accuracy(output, target)
+        self.log("Regular loss", self.loss)
+        self.log_values()
+        return self.loss
+        '''
         elif optimizer_idx == 1:
-            print("Generator loss: ", self.gen_loss)
             self.log_values()
             return self.gen_loss
         else:
-            print("Critic loss: ", self.crit_loss)
             self.log_critic_gradients = True
 
             a = self.wgan.generator.encode(x)
             self.gradient_penalty = self.wgan.critic.compute_gradient_penalty(xr, xi, a)
             self.log_values()
             return self.crit_loss + 10 * self.gradient_penalty
-
+'''
     def configure_optimizers(self):
-        optimizer_all = torch.optim.Adam(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters())
+        optimizer_all = torch.optim.SGD(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters())
                                          + list(self.decoder.parameters()), lr=self.lr_model)
         optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen)
         optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit)
         return (
             {'optimizer': optimizer_all, 'frequency': 1},
-            {'optimizer': optimizer_generator, 'frequency': 1},
-            {'optimizer': optimizer_crit, 'frequency': 5}
+            #{'optimizer': optimizer_generator, 'frequency': 1},
+            #{'optimizer': optimizer_crit, 'frequency': 5}
         )
 
     def log_values(self):
@@ -145,5 +150,5 @@ class PrivacyModel(pl.LightningModule):
         if self.log_grads:
             for name, params in self.named_parameters():
                 if params.grad is not None:
-                    self.logger.experiment.add_histogram(name + " Gradients", params.grad, self.current_epoch)
+                    self.logger.experiment.add_histogram(name + " Gradients", params.grad, self.batch_idx)
             self.log_grads = False

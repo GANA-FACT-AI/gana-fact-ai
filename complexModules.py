@@ -26,7 +26,7 @@ class InvariantReLU(Module):
 		c = c.view(1, c.shape[0], 1, 1)
 		maxpick = torch.max(norm, c)
 		# print('maxpick', maxpick)
-		return norm/maxpick  * input_r , norm/maxpick * input_i
+		return norm/maxpick * input_r , norm/maxpick * input_i
 
 class InvariantBatchNorm(Module):
 	def __init__(self,):

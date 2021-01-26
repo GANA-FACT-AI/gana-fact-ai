@@ -13,7 +13,7 @@ class WGAN(nn.Module):
 
     def forward(self, x, I_prime, theta):
         xr, xi, a = self.generator(x, I_prime, theta)
-        real_score, fake_score = self.critic(xr, xi, a)
+        real_score, fake_score = (torch.zeros(1), torch.zeros(1)) #self.critic(xr, xi, a)
         critic_loss = torch.mean(real_score) - torch.mean(fake_score)
         generator_loss = -torch.mean(real_score) + torch.mean(fake_score)
 
