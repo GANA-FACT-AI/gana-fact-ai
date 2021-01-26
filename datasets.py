@@ -2,21 +2,21 @@ from torch.utils.data import Subset, DataLoader
 from torchvision import datasets, transforms
 from sklearn.model_selection import train_test_split
 
-def load_data(dataset, batch_size, num_workers):
+def load_data(dataset, batch_size, num_workers, adversary=False):
     if dataset == 'mnist':
-        return load_MNIST( batch_size,  num_workers)
+        return load_MNIST(batch_size, num_workers, adversary)
     elif dataset == 'celeba':
-        return  load_CelebA( batch_size,  num_workers)
+        return  load_CelebA(batch_size, num_workers, adversary)
     elif dataset == 'cifar10':
-        return  load_CIFAR10( batch_size,  num_workers)
+        return  load_CIFAR10(batch_size, num_workers, adversary)
     elif dataset == 'cifar100':
-        return  load_CIFAR100( batch_size,  num_workers)
+        return  load_CIFAR100(batch_size, num_workers, adversary)
 
 def split_dataset(dataset, split=0.5):
     first_idx, second_idx = train_test_split(list(range(len(dataset))), test_size=split)
     return Subset(dataset, first_idx), Subset(dataset, second_idx)
 
-def load_MNIST(batch_size, num_workers, path='datasets/MNIST/', adversary=False):
+def load_MNIST(batch_size, num_workers, adversary, path='datasets/MNIST/'):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -40,7 +40,7 @@ def load_MNIST(batch_size, num_workers, path='datasets/MNIST/', adversary=False)
                                     num_workers=num_workers, drop_last=True, pin_memory=True)
     return train_loader, test_loader
 
-def load_CelebA(batch_size, num_workers, path='datasets/CelebA/', adversary=False):
+def load_CelebA(batch_size, num_workers, adversary, path='datasets/CelebA/'):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -67,7 +67,7 @@ def load_CelebA(batch_size, num_workers, path='datasets/CelebA/', adversary=Fals
 
     return train_loader, test_loader
 
-def load_CIFAR10(batch_size, num_workers, path='datasets/CIFAR10/', adversary=False):
+def load_CIFAR10(batch_size, num_workers, adversary, path='datasets/CIFAR10/'):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -92,7 +92,7 @@ def load_CIFAR10(batch_size, num_workers, path='datasets/CIFAR10/', adversary=Fa
 
     return train_loader, test_loader
 
-def load_CIFAR100(batch_size, num_workers, path='datasets/CIFAR100/', adversary=False):
+def load_CIFAR100(batch_size, num_workers, adversary, path='datasets/CIFAR100/'):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
