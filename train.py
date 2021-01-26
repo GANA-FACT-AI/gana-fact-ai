@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--lr_model', default=1e-3, type=float)
-    parser.add_argument('--batch_size', default=12, type=int,
+    parser.add_argument('--batch_size', default=4, type=int,
                         help='Minibatch size')
 
     # Other hyperparameters

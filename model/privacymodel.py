@@ -78,8 +78,8 @@ class PrivacyModel(pl.LightningModule):
         # Encoder/GAN
         xr, xi, self.crit_loss, self.gen_loss = self.wgan(x, I_prime, thetas)
 
-        self.log("Critic Loss: ", crit_loss)
-        self.log("Gen Loss: ", gen_loss)
+        self.log("Critic Loss: ", self.crit_loss)
+        self.log("Gen Loss: ", self.gen_loss)
 
         if optimizer_idx == 0:
             # Processing Unit
@@ -90,14 +90,17 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             self.loss = F.nll_loss(output, target)
+            print("Regular loss: ", self.loss)
             self.last_accuracy = self.accuracy(output, target)
 
             self.log_values()
             return self.loss
         elif optimizer_idx == 1:
+            print("Generator loss: ", self.gen_loss)
             self.log_values()
             return self.gen_loss
         else:
+            print("Critic loss: ", self.crit_loss)
             self.log_critic_gradients = True
 
             a = self.wgan.generator.encode(x)
