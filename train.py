@@ -6,8 +6,8 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from datasets import load_data
-from resnet_beta.privacymodel import PrivacyModel as ResNetb
-
+from resnet_alpha.privacymodel import PrivacyModel as ResNetA
+from resnet_beta.privacymodel import PrivacyModel as ResNetB
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
@@ -35,10 +35,9 @@ def train(args):
 
     if 'resnet' in args.model:
         if 'a' in args.model:
-            model = None
-            # model = ResNeta(args)
+            model = ResNetA(args)
         else:
-            model = ResNetb(args)
+            model = ResNetB(args)
 
     trainer.fit(model, train_loader)
 
@@ -53,7 +52,7 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='resnet20b', type=str,
+    parser.add_argument('--model', default='resnet20a', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
