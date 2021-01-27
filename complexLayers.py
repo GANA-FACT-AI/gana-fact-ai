@@ -94,7 +94,7 @@ class ComplexConvTranspose2d(Module):
 
 class ComplexConv2d(Module):
 
-    def __init__(self,in_channels, out_channels, kernel_size=3, stride=1, padding = 0,
+    def __init__(self,in_channels, out_channels, kernel_size=3, stride=1, padding=0,
                  dilation=1, groups=1, bias=True):
         super(ComplexConv2d, self).__init__()
         self.conv_r = Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
@@ -108,7 +108,7 @@ class ComplexConv2d(Module):
 
 class ComplexLinear(Module):
 
-    def __init__(self, in_features, out_features, bias = True):
+    def __init__(self, in_features, out_features, bias=True):
         super(ComplexLinear, self).__init__()
         self.fc_r = Linear(in_features, out_features, bias)
         self.fc_i = Linear(in_features, out_features, bias)
@@ -136,13 +136,13 @@ class NaiveComplexBatchNorm2d(Module):
     '''
     Naive approach to complex batch norm, perform batch norm independently on real and imaginary part.
     '''
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, \
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
         super(NaiveComplexBatchNorm2d, self).__init__()
         self.bn_r = BatchNorm2d(num_features, eps, momentum, affine, track_running_stats)
         self.bn_i = BatchNorm2d(num_features, eps, momentum, affine, track_running_stats)
 
-    def forward(self,input_r, input_i):
+    def forward(self, input_r, input_i):
         return self.bn_r(input_r), self.bn_i(input_i)
 
 
@@ -156,7 +156,7 @@ class NaiveComplexBatchNorm1d(Module):
         self.bn_r = BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
         self.bn_i = BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
 
-    def forward(self,input_r, input_i):
+    def forward(self, input_r, input_i):
         return self.bn_r(input_r), self.bn_i(input_i)
 
 
@@ -225,7 +225,7 @@ class ComplexBatchNorm2d(_ComplexBatchNorm):
             mean_r = input_r.mean([0, 2, 3])
             mean_i = input_i.mean([0, 2, 3])
 
-            mean = torch.stack((mean_r,mean_i),dim=1)
+            mean = torch.stack((mean_r, mean_i), dim=1)
 
             # update running mean
             with torch.no_grad():
@@ -237,7 +237,7 @@ class ComplexBatchNorm2d(_ComplexBatchNorm):
 
             # Elements of the covariance matrix (biased for train)
             n = input_r.numel() / input_r.size(1)
-            Crr = 1./n*input_r.pow(2).sum(dim=[0,2,3])+self.eps
+            Crr = 1./n*input_r.pow(2).sum(dim=[0,2,3])+self.eps  # TODO: Why eps here
             Cii = 1./n*input_i.pow(2).sum(dim=[0,2,3])+self.eps
             Cri = (input_r.mul(input_i)).mean(dim=[0,2,3])
 

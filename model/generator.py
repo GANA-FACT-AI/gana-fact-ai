@@ -1,7 +1,7 @@
-import math
 import torch
 import torch.nn as nn
 import numpy as np
+from resnet import BasicBlock, make_layers
 
 
 class Generator(nn.Module):
@@ -18,9 +18,12 @@ class Generator(nn.Module):
             nn.ReLU(inplace=True)
         )
 
+    def encode(self, x):
+        return self.layers(x)
+
     def forward(self, x, I_prime, theta):
-        a = self.layers(x)
-        b = self.layers(I_prime)
+        a = self.encode(x)
+        b = self.encode(I_prime)
         rotated_r = torch.cos(theta)*a - torch.sin(theta)*b
         rotated_i = torch.sin(theta)*a + torch.cos(theta)*b
         return rotated_r, rotated_i, a
