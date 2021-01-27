@@ -53,7 +53,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', default='default', type=str,
                         help='What model to use in the VAE',
                         choices=['default'])
-    parser.add_argument('--dataset', default='cifar10', type=str,
+    parser.add_argument('--dataset', default='celeba', type=str,
                         help='Dataset to train the model on.')
 
     # Optimizer hyperparameters
@@ -68,7 +68,7 @@ if __name__ == '__main__':
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
-    parser.add_argument('--num_workers', default=0, type=int,
+    parser.add_argument('--num_workers', default=4, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
     parser.add_argument('--log_dir', default='logs', type=str,

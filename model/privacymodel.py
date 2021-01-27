@@ -52,8 +52,9 @@ class PrivacyModel(pl.LightningModule):
 
         # Decoder
         output = self.decoder(xr, xi, thetas)
+        preds = F.sigmoid(output)
 
-        return output
+        return preds
 
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -74,8 +75,14 @@ class PrivacyModel(pl.LightningModule):
         # Encoder/GAN
         xr, xi, self.crit_loss, self.gen_loss = self.wgan(x, I_prime, thetas)
 
-        self.log("Critic Loss: ", crit_loss)
-        self.log("Gen Loss: ", gen_loss)
+        self.log("Critic Loss: ", self.crit_loss)
+        self.log("Gen Loss: ", self.gen_loss)
+
+        if self.gen_loss != self.gen_loss:
+            print("gen loss")
+
+        if self.crit_loss != self.crit_loss:
+            print("crit loss")
 
         if optimizer_idx == 0:
             # Processing Unit
@@ -86,9 +93,15 @@ class PrivacyModel(pl.LightningModule):
             target = target.to(torch.float)
 
             # Loss
-            loss = F.binary_cross_entropy_with_logits(output, target)
+            self.loss = F.binary_cross_entropy(output, target)
             self.last_accuracy = self.accuracy(output, target)
-
+            self.log("Regular Loss: ", self.loss)
+            if batch_idx % 5 == 0:
+                print("target: ", [i for i, x in enumerate((target==1)[0,:]) if x])
+                print("output: ", [i for i, x in enumerate((output>=0.7)[0,:]) if x])
+                print("regular loss: ", self.loss)
+            if self.loss != self.loss:
+                print("regular loss")
             self.log_values()
             return self.loss
         elif optimizer_idx == 1:

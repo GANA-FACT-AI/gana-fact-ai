@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # Model hyperparameters
     parser.add_argument('--attack_model', default='inversion1', type=str,
                         help='What type of attack should be performed.')
-    parser.add_argument('--dataset', default='cifar10', type=str,
+    parser.add_argument('--dataset', default='celeba', type=str,
                         help='Dataset to train the model on.')
 
     # Optimizer hyperparameters

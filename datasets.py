@@ -44,6 +44,7 @@ def load_MNIST(batch_size, num_workers, adversary, path='datasets/MNIST/'):
 def load_CelebA(batch_size, num_workers, adversary, path='datasets/CelebA/'):
     # Initilizes transform
     transform = transforms.Compose([
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
