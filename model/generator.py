@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from resnet import BasicBlock, make_layers
+from resnet import LayerNormBlock, make_layers
+from random import random
 
 
 class Generator(nn.Module):
@@ -18,9 +19,19 @@ class Generator(nn.Module):
     def encode(self, x):
         return self.layers(x)
 
+    def rotate(self, a, b, theta):
+        rotated_r = torch.cos(theta)*a - torch.sin(theta)*b
+        rotated_i = torch.sin(theta)*a + torch.cos(theta)*b
+        return rotated_r, rotated_i
+
     def forward(self, x, I_prime, theta):
         a = self.encode(x)
         b = self.encode(I_prime)
-        rotated_r = torch.cos(theta)*a - torch.sin(theta)*b
-        rotated_i = torch.sin(theta)*a + torch.cos(theta)*b
-        return rotated_r, rotated_i, a
+        theta_add = 0
+        if random() < 0.5:
+            a, b = b, a
+            theta_add = -0.5 * 3.1414
+            rotated_r, rotated_i = self.rotate(a, b, theta)
+            return rotated_r, rotated_i, b, theta_add
+        rotated_r, rotated_i = self.rotate(a, b, theta)
+        return rotated_r, rotated_i, a, theta_add

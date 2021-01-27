@@ -6,13 +6,13 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from adversary.Adversary import Adversary
-from data.CIFAR10 import load_data
+from datasets import load_data
 from model.privacymodel import PrivacyModel
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, test_loader = load_data(args.batch_size, args.num_workers)
+    train_loader, test_loader = load_data("cifar10", args.batch_size, num_workers=0, adversary=True)
 
     logger = TensorBoardLogger("logs", name="adversary")
 
@@ -39,7 +39,7 @@ def train(args):
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':

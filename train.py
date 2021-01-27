@@ -5,13 +5,14 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from data.CIFAR10 import load_data
+#from data.CIFAR10 import load_data
+from datasets import load_data
 from model.privacymodel import PrivacyModel
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, test_loader = load_data(args.batch_size, args.num_workers)
+    train_loader, test_loader = load_data("cifar10", args.batch_size, num_workers=0, adversary=False)
 
     logger = TensorBoardLogger("logs", name="lightning_logs")
 

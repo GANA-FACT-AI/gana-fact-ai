@@ -75,14 +75,14 @@ class PrivacyModel(pl.LightningModule):
         thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
-        xr, xi, self.crit_loss, self.gen_loss = self.wgan(x, I_prime, thetas)
+        xr, xi, self.crit_loss, self.gen_loss, thetas_add = self.wgan(x, I_prime, thetas)
 
         if optimizer_idx == 0:
             # Processing Unit
             xr, xi = self.processing_unit(xr, xi)
 
             # Decoder
-            output = self.decoder(xr, xi, thetas)
+            output = self.decoder(xr, xi, thetas, thetas_add)
 
             # Loss
             self.loss = F.nll_loss(output, target)
