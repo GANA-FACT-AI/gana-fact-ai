@@ -17,8 +17,6 @@ def train(args):
 
     train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers, adversary=True)
 
-    # train_loader, test_loader = load_data(args.batch_size, args.num_workers)
-
     logger = TensorBoardLogger("logs", name=args.attack_model)
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
@@ -43,7 +41,7 @@ def train(args):
 
     # Inversion attacks
     if args.attack_model == 'inversion1':
-        angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, 
+        angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred,
                                                                 privacy_model=privacy_model)
         adversary_model = Inversion(privacy_model, angle_pred_model)
     elif args.attack_model == 'inversion2':
@@ -56,13 +54,7 @@ def train(args):
         # inversion_model = Inversion.load_from_checkpoint(args.checkpoint_inversion, 
         #                                                     privacy_model=privacy_model, 
         #                                                     angle_pred_model=angle_pred_model)
-        adversary_model = Inference()
-    elif args.attack_model == 'inference2':
-        pass
-    elif args.attack_model == 'inference3':
-        pass
-    elif args.attack_model == 'inference4':
-        pass
+        adversary_model = Inference(args.dataset)
     
     trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
@@ -90,7 +82,7 @@ if __name__ == '__main__':
                         help='Minibatch size')
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=40, type=int,
+    parser.add_argument('--epochs', default=100, type=int,
                         help='Max number of epochs.')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results.')

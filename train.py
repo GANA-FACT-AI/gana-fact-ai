@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from datasets import load_data
-from model.privacymodel import PrivacyModel
+from resnet_beta.privacymodel import PrivacyModel as ResNetb
 
 
 def train(args):
@@ -32,7 +32,13 @@ def train(args):
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel(args)
+
+    if 'resnet' in args.model:
+        if 'a' in args.model:
+            model = None
+            # model = ResNeta(args)
+        else:
+            model = ResNetb(args)
 
     trainer.fit(model, train_loader)
 
@@ -47,9 +53,8 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='default', type=str,
-                        help='What model to use in the VAE',
-                        choices=['default'])
+    parser.add_argument('--model', default='resnet20b', type=str,
+                        help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
 
