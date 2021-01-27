@@ -5,36 +5,47 @@ import math
 import pytorch_lightning as pl
 import torch.nn.functional as F
 
+from torch.nn.modules.module import ModuleAttributeError
+
 from model.decoder import Decoder
 from model.processing_unit import ProcessingUnit
 from model.wgan import WGAN
 
 
 class PrivacyModel(pl.LightningModule):
-    def __init__(self, train_loader, *args):
+    def __init__(self, hyperparams):
         super().__init__()
         self.wgan = WGAN(k=8, log_fn=self.log)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
         self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
+        self.lr_gen = hyperparams.lr_gen
+        self.lr_crit = hyperparams.lr_crit
+        self.lr_model = hyperparams.lr_model
+
+        self.plot_graph = hyperparams.plot_graph
 
         # needed to fix logging bug
         self.loss = None
-        self.total_loss = None
         self.last_accuracy = None
         self.log_grads = True
         self.log_critic_gradients = False
+        self.crit_loss = None
+        self.gen_loss = None
+
+    @staticmethod
+    def thetas(x):
+        thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
+        return thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
     def forward(self, x):
-        device = "cuda:0" if torch.cuda.is_available() else "cpu"
         I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
 
-        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
-        thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
+        thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
-        xr, xi, _ = self.wgan.generate(x, I_prime, thetas)
+        xr, xi, _ = self.wgan.generator(x, I_prime, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
@@ -46,20 +57,22 @@ class PrivacyModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        if self.current_epoch == -1 and batch_idx == 0:
+        try:
+            self.gradient_penalty
+        except ModuleAttributeError:
+            self.gradient_penalty = torch.tensor(0).to(device)
+        if self.plot_graph:
             self.logger.experiment.add_graph(self, torch.rand(1, 3, 32, 32).to(device))
+            self.plot_graph = False
+
         x, target = batch
         I_prime = x if self.random_batch is None else self.random_batch
         self.random_batch = x
 
-        thetas = torch.rand(x.shape[0]).to(device) * 2 * math.pi
-        thetas = thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
+        thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
-        xr, xi, crit_loss, gen_loss = self.wgan.forward(x, I_prime, thetas)
-
-        self.log("generator_loss", gen_loss)
-        self.log("critic_loss", crit_loss)
+        xr, xi, self.crit_loss, self.gen_loss = self.wgan(x, I_prime, thetas)
 
         if optimizer_idx == 0:
             # Processing Unit
@@ -70,34 +83,38 @@ class PrivacyModel(pl.LightningModule):
 
             # Loss
             self.loss = F.nll_loss(output, target)
-            self.total_loss = self.loss
             self.last_accuracy = self.accuracy(output, target)
 
-            self.log("classifier_loss", self.loss)
-            self.log("total_loss", self.total_loss)
-            self.log("accuracy", self.last_accuracy)
-            return self.total_loss
+            self.log_values()
+            return self.loss
         elif optimizer_idx == 1:
-            self.log("classifier_loss", self.loss)
-            self.log("total_loss", self.total_loss)
-            self.log("accuracy", self.last_accuracy)
-            return gen_loss
+            self.log_values()
+            return self.gen_loss
         else:
             self.log_critic_gradients = True
-            self.log("classifier_loss", self.loss)
-            self.log("total_loss", self.total_loss)
-            self.log("accuracy", self.last_accuracy)
-            return crit_loss
+
+            a = self.wgan.generator.encode(x)
+            self.gradient_penalty = self.wgan.critic.compute_gradient_penalty(xr, xi, a)
+            self.log_values()
+            return self.crit_loss + 10 * self.gradient_penalty
 
     def configure_optimizers(self):
-        optimizer_all = torch.optim.Adam(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters()) + list(self.decoder.parameters()))
-        optimizer_generator = torch.optim.RMSprop(self.wgan.generator.parameters(), lr=0.00005)
-        optimizer_crit = torch.optim.RMSprop(self.wgan.critic.parameters(), lr=0.00005)
+        optimizer_all = torch.optim.Adam(list(self.wgan.generator.parameters()) + list(self.processing_unit.parameters())
+                                         + list(self.decoder.parameters()), lr=self.lr_model)
+        optimizer_generator = torch.optim.Adam(self.wgan.generator.parameters(), lr=self.lr_gen)
+        optimizer_crit = torch.optim.Adam(self.wgan.critic.parameters(), lr=self.lr_crit)
         return (
-            {'optimizer': optimizer_all, 'frequency':1},
+            {'optimizer': optimizer_all, 'frequency': 1},
             {'optimizer': optimizer_generator, 'frequency': 1},
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
+
+    def log_values(self):
+        self.log("generator_loss", self.gen_loss)
+        self.log("critic_loss", self.crit_loss)
+        self.log("classifier_loss", self.loss)
+        self.log("accuracy", self.last_accuracy)
+        self.log("gradient_penalty", self.gradient_penalty)
 
     def training_epoch_end(self, outputs: List[Any]) -> None:
         self.log_grads = True
@@ -108,7 +125,7 @@ class PrivacyModel(pl.LightningModule):
         if self.log_critic_gradients:
             for name, params in self.wgan.critic.named_parameters():
                 if params.grad is not None:
-                    self.logger.experiment.add_scalar("critic_grad_norm", torch.norm(params.grad))
+                    self.logger.experiment.add_scalar("critic_grad_norm", torch.norm(params.grad)) # TODO: use self.log
             self.log_critic_gradients = False
         else:
             for name, params in self.named_parameters():
@@ -120,9 +137,3 @@ class PrivacyModel(pl.LightningModule):
                 if params.grad is not None:
                     self.logger.experiment.add_histogram(name + " Gradients", params.grad, self.current_epoch)
             self.log_grads = False
-
-    # def validation_step(self):
-    #     pass
-
-    # def test_step(self):
-    #     pass
