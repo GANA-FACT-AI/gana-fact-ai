@@ -5,16 +5,20 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.angle_pred import AnglePred
+from LeNet_adversary.Inversion import Inversion
+from LeNet_adversary.inference import Inference
+from LeNet.privacymodel import PrivacyModel
+from LeNet_adversary.angle_pred import AnglePred
 from datasets import load_data
-from model.privacymodel import PrivacyModel
-
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
+
     train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers, adversary=True)
 
-    logger = TensorBoardLogger("logs", name="angle_predictor")
+    # train_loader, test_loader = load_data(args.batch_size, args.num_workers)
+
+    logger = TensorBoardLogger("logs", name=args.attack_model)
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=args.checkpoint_callback,
@@ -27,16 +31,39 @@ def train(args):
                          overfit_batches=args.overfit_batches,
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
-                         limit_val_batches=0.01,
+                         limit_val_batches=0.05,
                          val_check_interval=0.20
                          )
+
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    model = AnglePred(privacymodel)
+    privacy_model = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict = False)
 
-    trainer.fit(model, train_loader, val_dataloaders=test_loader)
+    # Inversion attacks
+    if args.attack_model == 'inversion1':
+        angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, 
+                                                                privacy_model=privacy_model, strict = False)
+        adversary_model = Inversion(privacy_model, angle_pred_model)
+    elif args.attack_model == 'inversion2':
+        adversary_model = Inversion(privacy_model)
+
+    # Inference attacks
+    elif args.attack_model == 'inference1':
+        # angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, 
+        #                                                         privacy_model=privacy_model)
+        # inversion_model = Inversion.load_from_checkpoint(args.checkpoint_inversion, 
+        #                                                     privacy_model=privacy_model, 
+        #                                                     angle_pred_model=angle_pred_model)
+        adversary_model = Inference()
+    elif args.attack_model == 'inference2':
+        pass
+    elif args.attack_model == 'inference3':
+        pass
+    elif args.attack_model == 'inference4':
+        pass
+    
+    trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
@@ -49,11 +76,8 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='inversion', type=str,
-                        help='What type of attack should be performed.',
-                        choices=['inversion', 'inference'])
-    parser.add_argument('--attack', default=1, type=int,
-                        help='Which of the attacks should be performed.')
+    parser.add_argument('--attack_model', default='inversion1', type=str,
+                        help='What type of attack should be performed.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
 
@@ -80,8 +104,8 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_14/checkpoints/epoch=499.ckpt', type=str)
-    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_25/checkpoints/epoch=499-step=97499.ckpt', type=str)
+    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_20/checkpoints/epoch=39-step=7799.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
 
     args = parser.parse_args()
