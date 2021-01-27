@@ -5,16 +5,16 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
+from adversary.angle_pred import AnglePred
 from datasets import load_data
 from model.privacymodel import PrivacyModel
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-
     train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
 
-    logger = TensorBoardLogger("logs", name="lightning_logs")
+    logger = TensorBoardLogger("logs", name="angle_predictor")
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=args.checkpoint_callback,
@@ -27,14 +27,16 @@ def train(args):
                          overfit_batches=args.overfit_batches,
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
-                         limit_val_batches=args.limit_val_batches,
+                         limit_val_batches=0.01,
+                         val_check_interval=0.20
                          )
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel(args)
+    privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    model = AnglePred(privacymodel)
 
-    trainer.fit(model, train_loader)
+    trainer.fit(model, train_loader, val_dataloaders=test_loader)
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
@@ -47,28 +49,30 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='default', type=str,
-                        help='What model to use in the VAE',
-                        choices=['default'])
+    parser.add_argument('--model', default='inversion', type=str,
+                        help='What type of attack should be performed.',
+                        choices=['inversion', 'inference'])
+    parser.add_argument('--attack', default=1, type=int,
+                        help='Which of the attacks should be performed.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
 
     # Optimizer hyperparameters
+    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
-    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=500, type=int,
-                        help='Max number of epochs')
+    parser.add_argument('--epochs', default=40, type=int,
+                        help='Max number of epochs.')
     parser.add_argument('--seed', default=42, type=int,
-                        help='Seed to use for reproducing results')
+                        help='Seed to use for reproducing results.')
     parser.add_argument('--num_workers', default=0, type=int,
                         help='Number of workers to use in the data loaders. To have a truly deterministic run, this has to be 0. ' + \
                              'For your assignment report, you can use multiple workers (e.g. 4) and do not have to set it to 0.')
-    parser.add_argument('--log_dir', default='logs', type=str,
+    parser.add_argument('--log_dir', default='logs/adversary', type=str,
                         help='Directory where the PyTorch Lightning logs should be created.')
     parser.add_argument('--progress_bar', action='store_true',
                         help=('Use a progress bar indicator for interactive experimentation. '
@@ -76,6 +80,9 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_14/checkpoints/epoch=499.ckpt', type=str)
+    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
+    parser.add_argument('--predict_angle', default=True, type=bool)
 
     args = parser.parse_args()
 
