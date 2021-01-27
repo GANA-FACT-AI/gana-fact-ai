@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:lenet_v2" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </select>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c8de69cb-730b-4e14-9acd-a0daf606434b" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1nR2qjOQPacomsABC1oMbsuntmY" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="restartRequiresConfirmation" value="false" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+  </component>
+  <component name="RunManager" selected="Python.train_LeNet">
+    <configuration name="angle" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="gana-fact-ai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/adversary" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/adversary/angle.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="critic" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="gana-fact-ai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/critic.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="torchrep" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="gana-fact-ai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/adversary" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/adversary/torchrep.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="gana-fact-ai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
+      <option name="PARAMETERS" value="--progress_bar" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="train_LeNet" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/anaconda3/envs/dl2020/bin/python3.8" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train_LeNet.py" />
+      <option name="PARAMETERS" value="--progress_bar" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.angle" />
+      <item itemvalue="Python.critic" />
+      <item itemvalue="Python.torchrep" />
+      <item itemvalue="Python.train" />
+      <item itemvalue="Python.train_LeNet" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.train_LeNet" />
+        <item itemvalue="Python.train" />
+        <item itemvalue="Python.critic" />
+        <item itemvalue="Python.angle" />
+        <item itemvalue="Python.torchrep" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c8de69cb-730b-4e14-9acd-a0daf606434b" name="Default Changelist" comment="" />
+      <created>1611338774199</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1611338774199</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="lenet_v2" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="104" y="35" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1611604162901">
+      <screen x="0" y="23" width="1280" height="706" />
+    </state>
+    <state x="104" y="35" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.703@0.23.1280.703" timestamp="1611523884795" />
+    <state x="104" y="35" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1280.706@0.23.1280.706" timestamp="1611604162901" />
+    <state x="319" y="182" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1611606479547">
+      <screen x="0" y="23" width="1280" height="706" />
+    </state>
+    <state x="319" y="182" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1280.706@0.23.1280.706" timestamp="1611606479547" />
+    <state x="326" y="23" key="#train" timestamp="1611727127439">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state x="326" y="23" key="#train/0.23.1280.703@0.23.1280.703" timestamp="1611727127439" />
+    <state x="326" y="23" key="#train_LeNet" timestamp="1611727158657">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state x="326" y="23" key="#train_LeNet/0.23.1280.703@0.23.1280.703" timestamp="1611727158657" />
+    <state x="494" y="105" key="EnvironmentVariablesDialog" timestamp="1611522814579">
+      <screen x="0" y="23" width="1280" height="700" />
+    </state>
+    <state x="494" y="105" key="EnvironmentVariablesDialog/0.23.1280.700@0.23.1280.700" timestamp="1611522814579" />
+    <state x="427" y="134" key="FileChooserDialogImpl" timestamp="1611523299225">
+      <screen x="0" y="23" width="1280" height="700" />
+    </state>
+    <state x="427" y="134" key="FileChooserDialogImpl/0.23.1280.700@0.23.1280.700" timestamp="1611523299225" />
+    <state width="1259" height="177" key="GridCell.Tab.0.bottom" timestamp="1611727158906">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.0.bottom/0.23.1280.703@0.23.1280.703" timestamp="1611727158906" />
+    <state width="1259" height="195" key="GridCell.Tab.0.bottom/0.23.1280.706@0.23.1280.706" timestamp="1611606168021" />
+    <state width="1259" height="177" key="GridCell.Tab.0.center" timestamp="1611727158904">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.0.center/0.23.1280.703@0.23.1280.703" timestamp="1611727158904" />
+    <state width="1259" height="195" key="GridCell.Tab.0.center/0.23.1280.706@0.23.1280.706" timestamp="1611606168020" />
+    <state width="1259" height="177" key="GridCell.Tab.0.left" timestamp="1611727158903">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.0.left/0.23.1280.703@0.23.1280.703" timestamp="1611727158903" />
+    <state width="1259" height="195" key="GridCell.Tab.0.left/0.23.1280.706@0.23.1280.706" timestamp="1611606168020" />
+    <state width="1259" height="177" key="GridCell.Tab.0.right" timestamp="1611727158905">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.0.right/0.23.1280.703@0.23.1280.703" timestamp="1611727158905" />
+    <state width="1259" height="195" key="GridCell.Tab.0.right/0.23.1280.706@0.23.1280.706" timestamp="1611606168020" />
+    <state width="1259" height="177" key="GridCell.Tab.1.bottom" timestamp="1611727158744">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.1.bottom/0.23.1280.703@0.23.1280.703" timestamp="1611727158744" />
+    <state width="1259" height="195" key="GridCell.Tab.1.bottom/0.23.1280.706@0.23.1280.706" timestamp="1611606167909" />
+    <state width="1259" height="177" key="GridCell.Tab.1.center" timestamp="1611727158743">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.1.center/0.23.1280.703@0.23.1280.703" timestamp="1611727158743" />
+    <state width="1259" height="195" key="GridCell.Tab.1.center/0.23.1280.706@0.23.1280.706" timestamp="1611606167909" />
+    <state width="1259" height="177" key="GridCell.Tab.1.left" timestamp="1611727158743">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.1.left/0.23.1280.703@0.23.1280.703" timestamp="1611727158743" />
+    <state width="1259" height="195" key="GridCell.Tab.1.left/0.23.1280.706@0.23.1280.706" timestamp="1611606167908" />
+    <state width="1259" height="177" key="GridCell.Tab.1.right" timestamp="1611727158744">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="1259" height="177" key="GridCell.Tab.1.right/0.23.1280.703@0.23.1280.703" timestamp="1611727158744" />
+    <state width="1259" height="195" key="GridCell.Tab.1.right/0.23.1280.706@0.23.1280.706" timestamp="1611606167909" />
+    <state x="395" y="84" key="RollbackChangesDialog" timestamp="1611693684503">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state x="395" y="84" key="RollbackChangesDialog/0.23.1280.703@0.23.1280.703" timestamp="1611693684503" />
+    <state x="141" y="23" width="997" height="703" key="SettingsEditor" timestamp="1611694350757">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state x="141" y="23" key="SettingsEditor/0.23.1280.700@0.23.1280.700" timestamp="1611523319020" />
+    <state x="141" y="23" width="997" height="703" key="SettingsEditor/0.23.1280.703@0.23.1280.703" timestamp="1611694350757" />
+    <state width="500" height="445" key="SwitcherDM" timestamp="1611575291596">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state width="500" height="445" key="SwitcherDM/0.23.1280.703@0.23.1280.703" timestamp="1611575291596" />
+    <state x="196" y="109" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1611571547151">
+      <screen x="0" y="23" width="1280" height="703" />
+    </state>
+    <state x="196" y="109" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.23.1280.703@0.23.1280.703" timestamp="1611571547151" />
+  </component>
+</project>
