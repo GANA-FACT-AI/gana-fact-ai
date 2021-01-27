@@ -15,7 +15,7 @@ from datasets import load_data
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
 
-    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
+    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers, adversary=True)
 
     # train_loader, test_loader = load_data(args.batch_size, args.num_workers)
 

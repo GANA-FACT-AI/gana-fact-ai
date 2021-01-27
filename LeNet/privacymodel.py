@@ -21,6 +21,11 @@ class PrivacyModel(pl.LightningModule):
         self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
 
+    @staticmethod
+    def thetas(x):
+        thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
+        return thetas.view([thetas.shape[0]] + (len(x.shape) - 1) * [1])
+
     def forward(self, batch):
         #device check
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
