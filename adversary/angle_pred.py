@@ -40,5 +40,8 @@ class AnglePred(pl.LightningModule):
 
         return loss
 
+    def test_step(self, batch, batch_idx):
+        return self.training_step(batch, batch_idx)
+
     def configure_optimizers(self):
         return Adam(self.angle_net.parameters(), lr=1e-4)  # given in the UNet-paper

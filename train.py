@@ -41,8 +41,8 @@ def train(args):
     trainer.fit(model, train_loader)
 
     # Testing
-    #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    model = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='resnet20a', type=str,
+    parser.add_argument('--model', default='resnet110b', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=500, type=int,
+    parser.add_argument('--epochs', default=1000, type=int,
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
@@ -83,6 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--plot_graph', default=False, type=bool)
     parser.add_argument('--lambda_', default=10, type=int)
     parser.add_argument('--random_swap', default=False, type=bool)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_67/checkpoints/epoch=303.ckpt', type=str)
 
     args = parser.parse_args()
 

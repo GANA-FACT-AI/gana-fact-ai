@@ -7,27 +7,25 @@ import torch.nn.functional as F
 
 from torch.nn.modules.module import ModuleAttributeError
 
-# from model.decoder import Decoder
-# from model.processing_unit import ProcessingUnit
-# from model.wgan import WGAN
+from resnet_beta.decoder import Decoder
+from resnet_beta.processing_unit import ProcessingUnit
+from resnet_beta.wgan import WGAN
 
 
 class PrivacyModel(pl.LightningModule):
     def __init__(self, hyperparams):
         super().__init__()
-        # self.wgan = WGAN(k=8, log_fn=self.log, random_swap=hyperparams.random_swap)
-        # self.decoder = Decoder()
-        # self.processing_unit = ProcessingUnit()
+        self.blocks = self.get_block_amount(hyperparams.model)
+        self.wgan = WGAN(k=8, log_fn=self.log, blocks=self.blocks)
+        self.processing_unit = ProcessingUnit(self.blocks)
+        self.decoder = Decoder(self.blocks)
+
         self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
         self.lr_gen = hyperparams.lr_gen
         self.lr_crit = hyperparams.lr_crit
         self.lr_model = hyperparams.lr_model
-        self.beta1 = hyperparams.beta1
-        self.beta2 = hyperparams.beta2
-
         self.plot_graph = hyperparams.plot_graph
-        self.lambda_ = hyperparams.lambda_
 
         # needed to fix logging bug
         self.loss = None
@@ -42,11 +40,25 @@ class PrivacyModel(pl.LightningModule):
         thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
         return thetas.view([thetas.shape[0]] + (len(x.shape)-1) * [1])
 
+    @staticmethod
+    def get_block_amount(model):
+        if model == 'resnet20b':
+            blocks = 3
+        elif model == 'resnet32b':
+            blocks = 5
+        elif model == 'resnet44b':
+            blocks = 7
+        elif model == 'resnet56b':
+            blocks = 9
+        else:
+            blocks = 18
+        print("Initializing {} with {} blocks".format(model, blocks))
+        return blocks
+
     def forward(self, x):
         I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
-        self.random_batch = x
 
-        thetas = self.thetas(x)
+        thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
         xr, xi, _ = self.wgan.generator(x, I_prime, thetas)
@@ -113,10 +125,11 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
 
-    def test_step(self, batch):
+    def test_step(self, batch, batch_idx):
         x, target = batch
         output = self.forward(x)
         accuracy = self.accuracy(output, target)
+        print(accuracy)
 
         return accuracy
 

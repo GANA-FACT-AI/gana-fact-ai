@@ -48,6 +48,11 @@ class Inversion(pl.LightningModule):
 
         return loss
 
+    def test_step(self, batch, batch_idx):
+        loss = self.training_step(batch, batch_idx)
+
+        return loss
+
     def configure_optimizers(self):
         return Adam(self.unet.parameters(), lr=1e-4)  # given in the UNet-paper
 

@@ -19,7 +19,7 @@ class Inference(pl.LightningModule):
         if dataset == 'cifar100':
             self.model = ResNet(BasicBlock, [9, 9, 9], num_classes=100)
         else:   # dataset == 'celeba'
-            self.model = AlexNet(num_classes=100)
+            self.model = AlexNet(num_classes=40)
 
     def forward(self, batch):
         x, target = batch
