@@ -125,6 +125,14 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
 
+    def test_step(self, batch, batch_idx):
+        x, target = batch
+        output = self.forward(x)
+        accuracy = self.accuracy(output, target)
+        print(accuracy)
+
+        return accuracy
+
     def log_values(self):
         self.log("generator_loss", self.gen_loss)
         self.log("critic_loss", self.crit_loss)

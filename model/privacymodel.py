@@ -41,6 +41,7 @@ class PrivacyModel(pl.LightningModule):
 
     def forward(self, x):
         I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
+        self.random_batch = x
 
         thetas = PrivacyModel.thetas(x)
 
@@ -108,6 +109,13 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_generator, 'frequency': 1},
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
+
+    def test_step(self, batch):
+        x, target = batch
+        output = self.forward(x)
+        accuracy = self.accuracy(output, target)
+
+        return accuracy
 
     def log_values(self):
         self.log("generator_loss", self.gen_loss)

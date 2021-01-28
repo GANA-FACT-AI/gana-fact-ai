@@ -7,12 +7,13 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from adversary.angle_pred import AnglePred
 from datasets import load_data
-from model.privacymodel import PrivacyModel
+from resnet_alpha.privacymodel import PrivacyModel as ResNetA
+from resnet_beta.privacymodel import PrivacyModel as ResNetB
 
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
+    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers, adversary=True)
 
     logger = TensorBoardLogger("logs", name="angle_predictor")
 
@@ -33,14 +34,18 @@ def train(args):
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    privacymodel = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    if 'resnet' in args.model:
+        if 'a' in args.model:
+            privacymodel = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
+        else:
+            privacymodel = ResNetB.load_from_checkpoint(args.checkpoint, hyperparams=args)
     model = AnglePred(privacymodel)
 
-    trainer.fit(model, train_loader, val_dataloaders=test_loader)
+    #trainer.fit(model, train_loader, val_dataloaders=test_loader)
 
     # Testing
-    #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacymodel)
+    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -49,18 +54,16 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='inversion', type=str,
-                        help='What type of attack should be performed.',
-                        choices=['inversion', 'inference'])
-    parser.add_argument('--attack', default=1, type=int,
-                        help='Which of the attacks should be performed.')
+    # Model hyperparameters
+    parser.add_argument('--model', default='resnet32a', type=str,
+                        help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
 
     # Optimizer hyperparameters
-    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
+    parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
 
@@ -80,8 +83,8 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_14/checkpoints/epoch=499.ckpt', type=str)
-    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_67/checkpoints/epoch=303.ckpt', type=str)
+    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_2/checkpoints/epoch=39.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
 
     args = parser.parse_args()
