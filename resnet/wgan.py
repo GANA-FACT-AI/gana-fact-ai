@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
-from resnet_beta.critic import Critic
-from resnet_beta.generator import Generator
+from resnet.critic import Critic
+from resnet.generator import Generator
 
 
 class WGAN(nn.Module):

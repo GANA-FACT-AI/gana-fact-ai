@@ -1,15 +1,23 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from resnet import BasicBlock, SpecialBlock, make_layers
+from resnet.resnet_blocks import BasicBlock, SpecialBlock, make_layers
+
+# class AlphaDecoder(Decoder):
+#     def __init__(self, blocks, classes):
+#         super().__init__()
+#         self.special_layer = make_layers(SpecialBlock, 64, 64, 1, stride=1)
+#         self.layer3 = make_layers(BasicBlock, 64, 64, blocks-1, stride=1)
+#         self.layers = nn.Sequential(self.special_layer, self.layer3)
+#         self.linear = nn.Linear(64, classes)
 
 
-class Decoder(nn.Module):
-    def __init__(self, blocks):
+class AlphaDecoder(nn.Module):
+    def __init__(self, blocks, classes):
         super().__init__()
         self.special_layer = make_layers(SpecialBlock, 64, 64, 1, stride=1)
         self.layer3 = make_layers(BasicBlock, 64, 64, blocks-1, stride=1)
-        self.linear = nn.Linear(64, 10)
+        self.linear = nn.Linear(64, classes)
 
     def forward(self, xr, xi, thetas):
         thetas = thetas.view([thetas.shape[0]] + (len(xr.shape)-1) * [1]) 

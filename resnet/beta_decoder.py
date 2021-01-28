@@ -1,15 +1,21 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from resnet import BasicBlock, make_layers
+from resnet.resnet_blocks import BasicBlock, make_layers
 
 
-class Decoder(nn.Module):
-    def __init__(self, blocks):
+# class BetaDecoder(Decoder):
+#     def __init__(self, blocks, classes):
+#         super().__init__()
+#         self.layers = make_layers(BasicBlock, 32, 64, blocks, stride=2)
+#         self.linear = nn.Linear(64, classes)
+
+class BetaDecoder(nn.Module):
+    def __init__(self, blocks, classes):
         super().__init__()
         self.layer3 = make_layers(BasicBlock, 32, 64, blocks, stride=2)
-        self.linear = nn.Linear(64, 10)
-
+        self.linear = nn.Linear(64, classes)
+        
     def forward(self, xr, xi, thetas):
         thetas = thetas.view([thetas.shape[0]] + (len(xr.shape)-1) * [1]) 
         x_orig_r = torch.cos(-thetas)*xr - torch.sin(-thetas)*xi

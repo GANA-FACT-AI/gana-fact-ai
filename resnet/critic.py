@@ -1,9 +1,9 @@
+import math
 import torch
 import numpy as np
-import math
 import torch.nn as nn
 
-from resnet import make_layers, LayerNormBlock, BasicBlock
+from resnet.resnet_blocks import make_layers, LayerNormBlock
 
 
 class Critic(nn.Module):

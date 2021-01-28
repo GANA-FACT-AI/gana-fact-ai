@@ -6,8 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from datasets import load_data
-from resnet_alpha.privacymodel import PrivacyModel as ResNetA
-from resnet_beta.privacymodel import PrivacyModel as ResNetB
+from resnet.resnet_privacy_model import ResNetPrivacyModel
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
@@ -28,16 +27,16 @@ def train(args):
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
                          limit_val_batches=args.limit_val_batches,
-                         )
+    )
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
 
     if 'resnet' in args.model:
         if 'a' in args.model:
-            model = ResNetA(args)
+            model = ResNetPrivacyModel.load_from_checkpoint('checkpoints/resnet-56-alpha-cifar10.ckpt', hyperparams=args)
         else:
-            model = ResNetB(args)
+            model = ResNetPrivacyModel(args)
 
     trainer.fit(model, train_loader)
 
@@ -63,6 +62,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--beta1', default=0.5, type=float)
+    parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=500, type=int,
@@ -80,6 +81,8 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
+    parser.add_argument('--lambda_', default=10, type=int)
+    parser.add_argument('--random_swap', default=False, type=bool)
 
     args = parser.parse_args()
 
