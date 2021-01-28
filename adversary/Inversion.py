@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torchvision
 from torch.optim import Adam
 
-from adversary.unet import UNet
+from adversary.Unet import UNet
 
 
 class Inversion(pl.LightningModule):

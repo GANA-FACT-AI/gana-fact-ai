@@ -24,11 +24,9 @@ conda activate factai
 # Activate your environment
 # source activate ...
 # Run your code
-srun python3 train.py --epochs 20 --lr_gen 1e-4 --lr_crit 1e-4
-srun python3 train.py --epochs 20 --lr_gen 1e-3 --lr_crit 1e-3
-srun python3 train.py --epochs 20 --lr_gen 1e-5 --lr_crit 1e-5
-srun python3 train.py --epochs 20 --lr_gen 1e-4 --lr_crit 4e-4
-srun python3 train.py --epochs 20 --lr_gen 4e-4 --lr_crit 1e-4
-srun python3 train.py --epochs 20 --lr_gen 1e-5 --lr_crit 4e-5
-srun python3 train.py --epochs 20 --lr_gen 4e-5 --lr_crit 1e-5
+#srun python3 train.py --epochs 600 --batch_size 512 --lr_gen 1e-4 --lr_crit 1e-4
+#srun python3 train.py --random_swap True --epochs 600 --batch_size 512
+srun python3 train_adversary.py --epochs 200 --batch_size 512 --checkpoint "logs/lightning_logs/version_139/epoch=599.ckpt" --attack_model "inversion_1"
+srun python3 train_adversary.py --epochs 200 --batch_size 512 --random_swap True --checkpoint "logs/lightning_logs/version_140/epoch=599.ckpt" --attack_model "inversion_1"
+
 

@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.inversion import Inversion
+from adversary.Inversion import Inversion
 from adversary.inference import Inference
 from model.privacymodel import PrivacyModel
 from adversary.angle_pred import AnglePred
@@ -15,7 +15,7 @@ from datasets import load_data
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
 
-    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers)
+    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers, adversary=True)
 
     logger = TensorBoardLogger("logs", name=args.attack_model)
 
@@ -47,20 +47,22 @@ def train(args):
     elif args.attack_model == 'inversion2':
         adversary_model = Inversion(privacy_model)
     # Inference attacks
-    elif args.attack_model == 'inference1':                                                    angle_pred_model=angle_pred_model)
+    elif args.attack_model == 'inference1':
+        # angle_pred_model=angle_pred_model  # TODO: there seems to be sth wrong here
         adversary_model = Inference(args.dataset)
+    else:
+        adversary_model = Inversion(privacy_model)
 
     trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    trainer.test(adversary_model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
     # Feel free to add more argument parameters
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
     parser.add_argument('--attack_model', default='inversion1', type=str,
@@ -97,6 +99,7 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_', default=10, type=int)
     parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
+    parser.add_argument('--random_swap', default=False, type=bool)
 
     args = parser.parse_args()
 
