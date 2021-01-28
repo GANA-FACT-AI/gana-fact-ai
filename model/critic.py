@@ -3,8 +3,6 @@ import numpy as np
 import math
 import torch.nn as nn
 
-from resnet import make_layers, LayerNormBlock, BasicBlock
-
 
 class Critic(nn.Module):
     def __init__(self, k):

@@ -1,16 +1,8 @@
-import torch.nn as nn
-from complexLayers import ComplexConv2d, ComplexLinear
-from complexModules import *
 from resnet import ComplexBlock, make_layers
+import model.processing_unit
 
 
-class ProcessingUnit(nn.Module):
+class ProcessingUnit(model.processing_unit.ProcessingUnit):
     def __init__(self, blocks):
         super().__init__()
         self.layers = make_layers(ComplexBlock, 16, 32, blocks, stride=2)
-
-    def forward(self, xr, xi):
-        x = self.layers([xr, xi])
-        xr = x[0]
-        xi = x[1]
-        return xr, xi
