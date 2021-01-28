@@ -12,16 +12,16 @@ class Critic(nn.Module):
         layers = list()
         layers.append(nn.Conv2d(16, 32, 3))
         layers.append(nn.LeakyReLU(0.2))
+        layers.append(nn.LayerNorm([32, 14, 14]))
         layers.append(nn.MaxPool2d(2))
 
-        layers.append(make_layers(LayerNormBlock, 32, 64, input_size=[1, 64, 8, 8], num_blocks=1, stride=2))
+        layers.append(nn.Conv2d(32, 64, 3))
+        layers.append(nn.LeakyReLU(0.2))
+        layers.append(nn.LayerNorm([64, 5, 5]))
 
-        layers.append(nn.Conv2d(64, 128, 3))
-        layers.append(nn.ReLU())
-
-        layers.append(nn.AvgPool2d(6))
+        layers.append(nn.AvgPool2d(5))
         layers.append(nn.Flatten())
-        layers.append(nn.Linear(128, 1))
+        layers.append(nn.Linear(64, 1))
         self.score = nn.Sequential(*layers)
         self.k = k
 

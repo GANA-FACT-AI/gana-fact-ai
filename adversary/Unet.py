@@ -67,6 +67,8 @@ class UNet(nn.Module):
         self.n_channels = n_input_channels
         self.n_classes = n_output_channels
 
+        self.upsample = nn.Upsample(scale_factor=2)
+
         self.donw_conv_1 = Down(n_input_channels, 64, 32)
         self.down_conv_2 = Down(64, 128, 16)
         self.down_conv_3 = Down(128, 256, 8)
@@ -89,6 +91,7 @@ class UNet(nn.Module):
         self.out = nn.Conv2d(64, self.n_classes, kernel_size=1)
 
     def forward(self, x):
+        x = self.upsample(x)
         x1 = self.donw_conv_1(x)
         x2 = self.max_pool_2x2(x1)
         x3 = self.down_conv_2(x2)

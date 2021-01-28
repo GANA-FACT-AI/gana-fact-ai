@@ -8,6 +8,8 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from datasets import load_data
 from resnet_alpha.privacymodel import PrivacyModel as ResNetA
 from resnet_beta.privacymodel import PrivacyModel as ResNetB
+from model.privacymodel import PrivacyModel
+
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
@@ -63,6 +65,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--beta1', default=0.5, type=float)
+    parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=500, type=int,
@@ -80,6 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
+    parser.add_argument('--lambda_', default=10, type=int)
 
     args = parser.parse_args()
 
