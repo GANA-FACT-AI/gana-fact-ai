@@ -29,9 +29,8 @@ class Generator(nn.Module):
         b = self.encode(I_prime)
         theta_add = 0
         if random() < 0.5:
-            a, b = b, a
             theta_add = -0.5 * 3.1414
+            rotated_r, rotated_i = self.rotate(b, a, theta)
+        else:
             rotated_r, rotated_i = self.rotate(a, b, theta)
-            return rotated_r, rotated_i, b, theta_add
-        rotated_r, rotated_i = self.rotate(a, b, theta)
         return rotated_r, rotated_i, a, theta_add
