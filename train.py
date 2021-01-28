@@ -82,6 +82,7 @@ if __name__ == '__main__':
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
     parser.add_argument('--lambda_', default=10, type=int)
+    parser.add_argument('--random_swap', default=False, type=bool)
 
     args = parser.parse_args()
 

@@ -5,9 +5,9 @@ from model.generator import Generator
 
 
 class WGAN(nn.Module):
-    def __init__(self, k, log_fn):
+    def __init__(self, k, log_fn, random_swap):
         super().__init__()
-        self.generator = Generator()
+        self.generator = Generator(random_swap)
         self.critic = Critic(k)
         self.log = log_fn
 

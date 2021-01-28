@@ -4,7 +4,7 @@ from random import random
 
 
 class Generator(nn.Module):
-    def __init__(self):
+    def __init__(self, random_swap):
         super().__init__()
         layers = list()
         layers.append(nn.LayerNorm([3, 32, 32]))
@@ -14,6 +14,7 @@ class Generator(nn.Module):
         layers.append(nn.LayerNorm([16, 16, 16]))
         layers.append(nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1))
         self.layers = nn.Sequential(*layers)
+        self.random_swap = random_swap
 
     def encode(self, x):
         return self.layers(x)
@@ -27,7 +28,7 @@ class Generator(nn.Module):
         a = self.encode(x)
         b = self.encode(I_prime)
         theta_add = 0
-        if random() < 0.5:
+        if random() < 0.5 and self.random_swap:
             theta_add = -0.5 * 3.1414
             rotated_r, rotated_i = self.rotate(b, a, theta)
         else:

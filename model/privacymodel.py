@@ -15,7 +15,7 @@ from model.wgan import WGAN
 class PrivacyModel(pl.LightningModule):
     def __init__(self, hyperparams):
         super().__init__()
-        self.wgan = WGAN(k=8, log_fn=self.log)
+        self.wgan = WGAN(k=8, log_fn=self.log, random_swap=hyperparams.random_swap)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()
         self.random_batch = None
