@@ -6,9 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from datasets import load_data
-from resnet_alpha.privacymodel import PrivacyModel as ResNetA
-from resnet_beta.privacymodel import PrivacyModel as ResNetB
-from model.privacymodel import PrivacyModel
+from resnet.resnet_privacy_model import ResNetPrivacyModel
 
 
 def train(args):
@@ -36,10 +34,9 @@ def train(args):
     pl.seed_everything(args.seed)  # To be reproducible
 
     if 'resnet' in args.model:
-        if 'a' in args.model:
-            model = ResNetA(args)
-        else:
-            model = ResNetB(args)
+        model = ResNetPrivacyModel(hyperparams=args)
+    else:
+        raise NotImplementedError
 
     trainer.fit(model, train_loader)
 

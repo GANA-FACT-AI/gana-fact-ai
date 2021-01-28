@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from resnet import BasicBlock, make_layers
+from resnet.resnet_blocks import BasicBlock, make_layers
 
 
 class Decoder(nn.Module):

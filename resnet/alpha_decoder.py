@@ -1,9 +1,9 @@
 import torch.nn as nn
-from resnet import BasicBlock, SpecialBlock, make_layers
+from resnet.resnet_blocks import BasicBlock, SpecialBlock, make_layers
 import model.decoder
 
 
-class Decoder(model.decoder.Decoder):
+class AlphaDecoder(model.decoder.Decoder):
     def __init__(self, blocks):
         super().__init__()
         self.special_layer = make_layers(SpecialBlock, 64, 64, 1, stride=1)

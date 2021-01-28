@@ -1,5 +1,5 @@
-from resnet_alpha.generator import Generator
-from resnet_alpha.critic import Critic
+from resnet.generator import Generator
+from resnet.critic import Critic
 import model.wgan
 
 

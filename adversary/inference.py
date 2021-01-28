@@ -1,13 +1,11 @@
-import torch
-import torch.nn as nn
 import pytorch_lightning as pl
-import torchvision
 from torch.optim import Adam
 
 # from adversary.unet import UNet
-from resnet import ResNet, BasicBlock
+from resnet.resnet_blocks import ResNet, BasicBlock
 from alexnet import AlexNet
 import torch.nn.functional as F
+
 
 class Inference(pl.LightningModule):
     def __init__(self, dataset, inversion=None):

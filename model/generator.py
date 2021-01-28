@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from resnet import LayerNormBlock, make_layers
 from random import random
 
 

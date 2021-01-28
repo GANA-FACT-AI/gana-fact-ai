@@ -1,5 +1,5 @@
 import torch.nn as nn
-from resnet import BasicBlock, make_layers
+from resnet.resnet_blocks import BasicBlock, make_layers
 import model.generator
 
 

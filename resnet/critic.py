@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from resnet import make_layers, LayerNormBlock
+from resnet.resnet_blocks import make_layers, LayerNormBlock
 import model.critic
 
 
