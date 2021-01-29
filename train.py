@@ -5,6 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
+from LeNet.privacymodel import LeNetPrivacyModel
 from datasets import load_data
 from resnet.resnet_privacy_model import ResNetPrivacyModel
 
@@ -35,6 +36,8 @@ def train(args):
 
     if 'resnet' in args.model:
         model = ResNetPrivacyModel(hyperparams=args)
+    elif 'lenet' in args.model:
+        model = LeNetPrivacyModel(hyperparams=args)
     else:
         raise NotImplementedError
     if args.checkpoint:
@@ -53,7 +56,7 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='resnet110b', type=str,
+    parser.add_argument('--model', default='lenet', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
