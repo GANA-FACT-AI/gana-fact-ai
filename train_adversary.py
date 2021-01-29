@@ -41,12 +41,19 @@ def train(args):
     privacy_model = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
 
     # Inversion attacks
-    if args.attack_model == 'inversion1':  # TODO: why loading some of these from checkpoint
+    if args.attack_model == 'inversion1':
         angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred,
                                                           privacy_model=privacy_model)
-        adversary_model = Inversion(privacy_model, angle_pred_model)
+        if args.checkpoint_adversary:
+            adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
+                                                             discriminator=angle_pred_model)
+        else:
+            adversary_model = Inversion(privacy_model, angle_pred_model)
     elif args.attack_model == 'inversion2':
-        adversary_model = Inversion(privacy_model)
+        if args.checkpoint_adversary:
+            adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model)
+        else:
+            adversary_model = Inversion(privacy_model)
     # Inference attacks
     elif args.attack_model == 'inference1':
         # angle_pred_model=angle_pred_model  # TODO: there seems to be sth wrong here
@@ -99,6 +106,7 @@ if __name__ == '__main__':
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
     parser.add_argument('--checkpoint', default='logs/lightning_logs/version_95/checkpoints/epoch=23.ckpt', type=str)
+    parser.add_argument('--checkpoint_adversary', default=None, type=str)
     parser.add_argument('--lambda_', default=10, type=int)
     parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
