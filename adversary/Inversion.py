@@ -96,3 +96,4 @@ class Inversion(pl.LightningModule):
         self.logger.experiment.add_image('original images {}'.format(self.img_counter), img_grid_orig, batch_idx)
         self.logger.experiment.add_image('reconstructed images {}'.format(self.img_counter), img_grid_gen, batch_idx)
         self.img_counter += 1
+        self.log('val_reconstruction_error', self.test_step((x, _), 0))

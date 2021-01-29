@@ -17,6 +17,7 @@ from collections import OrderedDict
 class PrivacyModel(pl.LightningModule):
     def __init__(self, hyperparams):
         super().__init__()
+        self.save_hyperparameters(hyperparams)
         self.wgan = WGAN(k=8, log_fn=self.log, random_swap=hyperparams.random_swap)
         self.decoder = Decoder()
         self.processing_unit = ProcessingUnit()

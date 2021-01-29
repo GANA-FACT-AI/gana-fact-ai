@@ -5,7 +5,7 @@
 #SBATCH --job-name=Privacymodel
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3
-#SBATCH --time=15:00:00
+#SBATCH --time=20:00:00
 #SBATCH --mem=32000M
 #SBATCH --output=output.out
 
@@ -24,9 +24,17 @@ conda activate factai
 # Activate your environment
 # source activate ...
 # Run your code
-#srun python3 train.py --epochs 600 --batch_size 512 --lr_gen 1e-4 --lr_crit 1e-4
-#srun python3 train.py --random_swap True --epochs 600 --batch_size 512
-srun python3 train_adversary.py --epochs 200 --batch_size 512 --checkpoint "logs/lightning_logs/version_139/epoch=599.ckpt" --attack_model "inversion_1"
-srun python3 train_adversary.py --epochs 200 --batch_size 512 --random_swap True --checkpoint "logs/lightning_logs/version_140/epoch=599.ckpt" --attack_model "inversion_1"
+srun python3 train.py --epochs 300 --batch_size 512 --beta1 0 --beta2 0.9
+srun python3 train_adversary.py --epochs 180 --batch_size 512 --checkpoint "logs/lightning_logs/version_141/checkpoints/epoch=299.ckpt" --attack_model "inversion2"
+srun python3 train_adversary.py --epochs 150 --batch_size 512 --checkpoint "logs/lightning_logs/version_141/checkpoints/epoch=299.ckpt" --attack_model "inversion1"
+
+srun python3 train.py --epochs 1200 --batch_size 512
+srun python3 train_adversary.py --epochs 180 --batch_size 512 --checkpoint "logs/lightning_logs/version_142/checkpoints/epoch=1199.ckpt" --attack_model "inversion2"
+srun python3 train_adversary.py --epochs 150 --batch_size 512 --checkpoint "logs/lightning_logs/version_142/checkpoints/epoch=1199.ckpt" --attack_model "inversion1"
+
+
+srun python3 train.py --random_swap True --epochs 1200 --batch_size 512
+srun python3 train_adversary.py --epochs 180 --batch_size 512 --random_swap True --checkpoint "logs/lightning_logs/version_143/checkpoints/epoch=1199.ckpt" --attack_model "inversion_2"
+srun python3 train_adversary.py --epochs 150 --batch_size 512 --random_swap True --checkpoint "logs/lightning_logs/version_143/checkpoints/epoch=1199.ckpt" --attack_model "inversion_2"
 
 
