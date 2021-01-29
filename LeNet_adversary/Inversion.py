@@ -69,3 +69,11 @@ class Inversion(pl.LightningModule):
         self.logger.experiment.add_image('original images {}'.format(self.img_counter), img_grid_orig, batch_idx)
         self.logger.experiment.add_image('reconstructed images {}'.format(self.img_counter), img_grid_gen, batch_idx)
         self.img_counter += 1
+
+    def test_step(self, batch, batch_idx):
+        x, target = batch
+        output = self.forward(batch)
+        output = output/2 + 0.5
+        target = target/2 + 0.5                #normalization [0,1]
+        p2norm = torch.mean(torch.norm(output - target))  #p2 norm
+        return p2norm

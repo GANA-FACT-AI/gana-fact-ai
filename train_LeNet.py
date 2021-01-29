@@ -11,8 +11,8 @@ from LeNet.privacymodel import PrivacyModel
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
-    trainloader_privacy, val_privacy  = \
-         load_data('cifar10',args.batch_size, args.num_workers, adversary = False)
+
+    train_loader, test_loader = load_data(args.dataset, args.batch_size, args.num_workers, adversary=False)
 
     trainer = pl.Trainer(default_root_dir=args.log_dir,
                          checkpoint_callback=True,
@@ -25,18 +25,25 @@ def train(args):
                          weights_summary=args.weights_summary,
                          limit_train_batches=args.limit_train_batches,
                          limit_val_batches=args.limit_val_batches,
-                         #resume_from_checkpoint='./logs/lightning_logs/version_0/checkpoints/epoch=29.ckpt',
+                         # resume_from_checkpoint='./logs/lightning_logs/version_0/checkpoints/epoch=29.ckpt',
                          deterministic=True
                          )
 
     pl.utilities.seed.seed_everything(args.seed)  # To be reproducible
-    model = PrivacyModel()
 
-    trainer.fit(model, trainloader_privacy)
+    #
+    model = PrivacyModel()
+    # trainer.fit(model, train_loader)
 
     # Testing
-    #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    model = PrivacyModel().load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
+    trainer.test(model, test_dataloaders=test_loader, verbose=True)
+
+    # print(trainer.test(model, test_dataloaders=test_loader, verbose=True))
+    # trainer.test(model, test_dataloaders=test_loader, verbose=True)
+
+    # model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
+    # test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -48,6 +55,8 @@ if __name__ == '__main__':
     parser.add_argument('--model', default='default', type=str,
                         help='What model to use in the VAE',
                         choices=['default'])
+    parser.add_argument('--dataset', default='cifar10', type=str,
+                        help='Dataset to train the model on.')
 
     # Optimizer hyperparameters
     parser.add_argument('--lr', default=1e-3, type=float,
@@ -70,7 +79,8 @@ if __name__ == '__main__':
                               'Not to be used in conjuction with SLURM jobs'))
     parser.add_argument('--debug', default=False, type=float,
                         help='Shorten epochs and epoch lengths for quick debugging')
-
+    parser.add_argument('--checkpoint',
+                        default='logs/lightning_logs/privacy_cifar10/checkpoints/epoch=499-step=97499.ckpt', type=str)
     args = parser.parse_args()
 
     if args.debug:

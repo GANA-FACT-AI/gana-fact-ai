@@ -63,9 +63,19 @@ def train(args):
     elif args.attack_model == 'inference4':
         pass
     
-    trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
+    # trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
-    # Testing
+#testing from already PRE-TRAINED model
+    # TODO fix this
+    if args.attack_model == 'inversion1':
+        adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary_2,strict=True)
+        trainer.test(adversary_model, test_dataloaders=test_loader, verbose=True)
+    elif  args.attack_model == 'inversion2':
+        adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary_2,  strict=False)
+        trainer.test(adversary_model, test_dataloaders=test_loader, verbose=True)
+
+
+    # Testing after training
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
     #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
@@ -104,8 +114,16 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_25/checkpoints/epoch=499-step=97499.ckpt', type=str)
-    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_20/checkpoints/epoch=39-step=7799.ckpt', type=str)
+
+    parser.add_argument('--checkpoint',
+                        default='logs/lightning_logs/privacy_cifar10/checkpoints/epoch=499-step=97499.ckpt', type=str)
+    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/angle_predictor_cifar10/checkpoints/epoch=39-step=7799.ckpt', type=str)
+    parser.add_argument('--checkpoint_adversary_1',
+                        default='logs/inversion1/inversion1_cifar10/checkpoints/epoch=39-step=7799.ckpt',
+                        type=str)
+    parser.add_argument('--checkpoint_adversary_2',
+                        default='logs/inversion2/inversion2_cifar10/checkpoints/epoch=99-step=19499.ckpt',
+                        type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
 
     args = parser.parse_args()

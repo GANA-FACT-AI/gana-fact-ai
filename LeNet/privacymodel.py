@@ -20,7 +20,8 @@ class PrivacyModel(pl.LightningModule):
         self.processing_unit = ProcessingUnit()
         self.random_batch = None
         self.accuracy = pl.metrics.Accuracy()
-
+        self.test_accuracy = 0
+        self.test_counter = 0
     @staticmethod
     def thetas(x):
         thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
@@ -139,5 +140,13 @@ class PrivacyModel(pl.LightningModule):
     def validation_step(self):
         pass
 
-    def test_step(self):
-        pass
+    def test_step(self, batch, batch_idx):
+
+        output = self.forward(batch)
+        x, target = batch
+        self.test_accuracy += self.accuracy(output, target)
+        self.test_counter += 1
+        out = self.test_accuracy / self.test_counter
+        self.log("Test_Accuracy: ",  out)
+        self.log("Test_Clasification_Error", 1 - out)
+        return out
