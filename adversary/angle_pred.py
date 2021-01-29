@@ -40,5 +40,20 @@ class AnglePred(pl.LightningModule):
 
         return loss
 
+    def test_step(self, batch, batch_idx):
+        x, _ = batch
+        I_prime = x if self.random_batch is None else self.random_batch
+        self.random_batch = x
+        thetas = self.privacy_model.thetas(x)
+
+        with torch.no_grad():
+            xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, thetas)
+            angle = self.angle_net(torch.cat((xr, xi), 1))
+        loss = torch.mean(torch.abs(thetas - angle))
+
+        self.log("test angle loss", loss)
+
+        return loss
+
     def configure_optimizers(self):
         return Adam(self.angle_net.parameters(), lr=1e-4)  # given in the UNet-paper
