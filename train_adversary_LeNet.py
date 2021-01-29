@@ -63,7 +63,7 @@ def train(args):
     elif args.attack_model == 'inference4':
         pass
     
-    # trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
+    trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
 #testing from already PRE-TRAINED model
     # TODO fix this

@@ -33,11 +33,11 @@ def train(args):
 
     #
     model = PrivacyModel()
-    # trainer.fit(model, train_loader)
-
+    trainer.fit(model, train_loader)
+    #
     # Testing
-    model = PrivacyModel().load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
-    trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    # model = PrivacyModel().load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
+    # trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
     # print(trainer.test(model, test_dataloaders=test_loader, verbose=True))
     # trainer.test(model, test_dataloaders=test_loader, verbose=True)
