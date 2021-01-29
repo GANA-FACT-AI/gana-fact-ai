@@ -45,4 +45,11 @@ python train_adverary.py --model [MODEL] --progress_bar
 <a id="1">[1]</a> 
 Liyao Xiang, Haotian Ma, Hao Zhang, Yifan Zhang, Jie Ren, and Quanshi Zhang (2020), 
 Interpretable complex-valued neural networks for privacy protection. 
+<a id="2">[2]</a>
+Sébastien M. P. (2021) wavefrontshaping/complexPytorch, 
+https://github.com/wavefrontshaping/complexPyTorch
+<a id="3">[3]</a>
+akamaster (2019) pytorch_resnet_cifar10/resnet.py,
+https://github.com/akamaster/pytorch_resnet_cifar10/blob/master/resnet.py
+
 
