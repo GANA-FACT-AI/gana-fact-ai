@@ -83,7 +83,7 @@ if __name__ == '__main__':
     # Model hyperparameters
     parser.add_argument('--attack_model', default='inversion1', type=str,
                         help='What type of attack should be performed.')
-    parser.add_argument('--model', default='lenet', type=str,
+    parser.add_argument('--model', default='resnet110a', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
@@ -98,6 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--add_gen_conv', default=False, type=bool)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=100, type=int,
