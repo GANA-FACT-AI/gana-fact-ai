@@ -5,11 +5,14 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.Inversion import Inversion
+from adversary.Inversion import Inversion as InversionResNet
+from LeNet_adversary.Inversion import Inversion as InversionLeNet
 from adversary.inference import Inference
-#from model.privacymodel import PrivacyModel
-from resnet.resnet_privacy_model import ResNetPrivacyModel as PrivacyModel
-from adversary.angle_pred import AnglePred
+from resnet.resnet_privacy_model import ResNetPrivacyModel
+from LeNet.privacymodel import LeNetPrivacyModel
+from adversary.angle_pred import AnglePred as AnglePredResNet
+from LeNet_adversary.angle_pred import AnglePred as AnglePredLeNet
+
 from datasets import load_data
 
 
@@ -34,45 +37,57 @@ def train(args):
                          limit_val_batches=0.05,
                          val_check_interval=0.20
                          )
-    if args.model == 'lenet':
-        from LeNet.privacymodel import LeNetPrivacyModel as PrivacyModel
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    privacy_model = PrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
+    if args.model == 'lenet':
+        privacy_model = LeNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
+    else:
+        privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
     args.unet_in_features = 6 if args.model == 'lenet' else 32
     args.upsampling_enabled = True if args.model == 'lenet' else False
+
     # Inversion attacks
     if args.attack_model == 'inversion1':
-        angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred,
-                                                          privacy_model=privacy_model, strict=False)
-        if args.checkpoint_adversary:
-            adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
-                                                             discriminator=angle_pred_model,
-                                                             in_features=args.unet_in_features,
-                                                             upsampling_enabled=args.upsampling_enabled, strict=False)
+        if args.model == 'lenet':
+            angle_pred_model = AnglePredLeNet.load_from_checkpoint(args.checkpoint_angle_pred,
+                                                            privacy_model=privacy_model, strict=False)
         else:
-            adversary_model = Inversion(privacy_model, angle_pred_model)
+            angle_pred_model = AnglePredResNet.load_from_checkpoint(args.checkpoint_angle_pred,
+                                                            privacy_model=privacy_model, strict=False)
+        if args.checkpoint_adversary:
+            if args.model == 'lenet':
+                adversary_model = InversionLeNet.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
+                                                                discriminator=angle_pred_model, strict=False)
+            else:
+                adversary_model = InversionResNet.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
+                                                                discriminator=angle_pred_model,
+                                                                in_features=args.unet_in_features,
+                                                                upsampling_enabled=args.upsampling_enabled, strict=False)
+        else:
+            if args.model == 'lenet':
+                adversary_model = InversionLeNet(privacy_model, angle_pred_model)
+            else:
+                adversary_model = InversionResNet(privacy_model, angle_pred_model)
     elif args.attack_model == 'inversion2':
         if args.checkpoint_adversary:
-            adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
-                                                             in_features=args.unet_in_features,
-                                                             upsampling_enabled=args.upsampling_enabled, strict=False)
+            if args.model == 'lenet':
+                adversary_model = InversionLeNet.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
+                                                                strict=False)
+            else:
+                adversary_model = InversionResNet.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
+                                                                in_features=args.unet_in_features,
+                                                                upsampling_enabled=args.upsampling_enabled, strict=False)
         else:
-            adversary_model = Inversion(privacy_model, in_features=args.unet_in_features,
-                                        upsampling_enabled=args.upsampling_enabled)
-    # Inference attacks
-    elif args.attack_model == 'inference1':
-        # angle_pred_model=angle_pred_model  # TODO: there seems to be sth wrong here
-        adversary_model = Inference(args.dataset)
-    else:
-        adversary_model = Inversion(privacy_model, in_features=args.unet_in_features,
-                                    upsampling_enabled=args.upsampling_enabled)
+            if args.model == 'lenet':
+                adversary_model = InversionLeNet(privacy_model)
+            else:
+                adversary_model = InversionResNet(privacy_model, in_features=args.unet_in_features,
+                                            upsampling_enabled=args.upsampling_enabled)
 
     trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
     # Testing
-    #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
     trainer.test(adversary_model, test_dataloaders=test_loader, verbose=True)
 
 
@@ -87,7 +102,6 @@ if __name__ == '__main__':
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
-    parser.add_argument('--add_gen_conv', default=False, type=bool)
 
 
 # Optimizer hyperparameters

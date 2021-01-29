@@ -5,10 +5,12 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.angle_pred import AnglePred
+from adversary.angle_pred import AnglePred as AnglePredResNet
+from LeNet_adversary.angle_pred import AnglePred as AnglePredLeNet
 from datasets import load_data
 from model.privacymodel import PrivacyModel
 from resnet.resnet_privacy_model import ResNetPrivacyModel
+from LeNet.privacymodel import LeNetPrivacyModel
 
 
 def train(args):
@@ -34,13 +36,21 @@ def train(args):
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    privacymodel = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    model = AnglePred(privacymodel)
+    if args.model == 'lenet':
+        privacy_model = LeNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
+        model = AnglePredLeNet(privacy_model)
+    else:
+        privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
+        model = AnglePredResNet(privacy_model)
+    
 
-    #trainer.fit(model, train_loader, val_dataloaders=test_loader)
+    trainer.fit(model, train_loader, val_dataloaders=test_loader)
 
     # Testing
-    model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacymodel, strict=False)
+    if args.model == 'lenet':
+        model = AnglePredLeNet.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model, strict=False)
+    else:
+        model = AnglePredResNet.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model, strict=False)
     test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 

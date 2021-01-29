@@ -34,9 +34,24 @@ class AnglePred(pl.LightningModule):
 
         loss = torch.mean(torch.abs(thetas - angle))
 
-        self.log("angle loss", loss)
+        self.log("angle loss lenet", loss)
         #if batch_idx % 30 == 0:  # TODO: move this code entirely into validation_step
         #self.validation_step_c(batch, batch_idx, I_prime)
+
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        x, _ = batch
+        I_prime = x if self.random_batch is None else self.random_batch
+        self.random_batch = x
+        thetas = self.privacy_model.thetas(x)
+
+        with torch.no_grad():
+            xr, xi, a, _ = self.privacy_model.wgan.generator(x, I_prime, thetas)
+            angle = self.angle_net(torch.cat((xr, xi), 1))
+        loss = torch.mean(torch.abs(thetas - angle))
+
+        self.log("test angle loss", loss)
 
         return loss
 

@@ -23,7 +23,7 @@ class Inversion(pl.LightningModule):
 
     def gen_imgs(self, x, I_prime):
         with torch.no_grad():
-            xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, self.privacy_model.thetas(x))
+            xr, xi, a, _ = self.privacy_model.wgan.generator(x, I_prime, self.privacy_model.thetas(x))
             if self.discriminator is not None:
                 xr, xi = self.discriminator(xr, xi)
             return self(xr, xi)
@@ -35,7 +35,7 @@ class Inversion(pl.LightningModule):
         thetas = self.privacy_model.thetas(x)
 
         with torch.no_grad():
-            xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, thetas)
+            xr, xi, a, _ = self.privacy_model.wgan.generator(x, I_prime, thetas)
             if self.discriminator is not None:
                 xr, xi = self.discriminator(xr, xi)
 
@@ -72,8 +72,4 @@ class Inversion(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         x, target = batch
-        output = self.forward(batch)
-        output = output/2 + 0.5
-        target = target/2 + 0.5                #normalization [0,1]
-        p2norm = torch.mean(torch.norm(output - target))  #p2 norm
-        return p2norm
+        return self.training_step(batch, batch_idx)
