@@ -37,12 +37,14 @@ def train(args):
         model = ResNetPrivacyModel(hyperparams=args)
     else:
         raise NotImplementedError
+    if args.checkpoint:
+        model = ResNetPrivacyModel.load_from_checkpoint(
+            args.checkpoint, hyperparams=args)
 
     trainer.fit(model, train_loader)
 
     # Testing
-    #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
-    #test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -51,12 +53,15 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='resnet20a', type=str,
+    parser.add_argument('--model', default='resnet110b', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
+    parser.add_argument('--checkpoint', default=None, type=str)
+    parser.add_argument('--add_gen_conv', default=True, type=bool)
 
-    # Optimizer hyperparameters
+
+# Optimizer hyperparameters
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--lr_model', default=1e-3, type=float)
@@ -92,7 +97,7 @@ if __name__ == '__main__':
         args.weights_summary = 'full'
         args.limit_train_batches = 20
         args.limit_val_batches = 20
-        args.checkpoint_callback = False
+        args.checkpoint_callback = True
     else:
         args.fast_dev_run = False
         args.overfit_batches = 0.0

@@ -5,9 +5,9 @@ from resnet.resnet_blocks import BasicBlock, make_layers
 
 
 class Decoder(nn.Module):
-    def __init__(self):
+    def __init__(self, blocks=3):
         super().__init__()
-        self.layers = make_layers(BasicBlock, 32, 64, 3, stride=2)
+        self.layers = make_layers(BasicBlock, 32, 64, blocks, stride=2)
         self.linear = nn.Linear(64, 10)
 
     def forward(self, xr, xi, thetas, theta_add):

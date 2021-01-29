@@ -6,7 +6,7 @@ import model.decoder
 class AlphaDecoder(model.decoder.Decoder):
     def __init__(self, blocks):
         super().__init__()
-        self.special_layer = make_layers(SpecialBlock, 64, 64, 1, stride=1)
-        self.layer = make_layers(BasicBlock, 64, 64, blocks - 1, stride=1)
-        self.layers = nn.Sequential(self.special_layer, self.layer)
+        special_layer = make_layers(SpecialBlock, 64, 64, 1, stride=1)
+        layer = make_layers(BasicBlock, 64, 64, blocks - 1, stride=1)
+        self.layers = nn.Sequential(special_layer, layer)
         self.linear = nn.Linear(64, 10)

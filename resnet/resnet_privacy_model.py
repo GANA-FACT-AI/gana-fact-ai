@@ -11,7 +11,8 @@ class ResNetPrivacyModel(model.privacymodel.PrivacyModel):
     def __init__(self, hyperparams):
         super().__init__(hyperparams)
         self.blocks = self.get_block_amount(hyperparams.model)
-        self.wgan = WGAN(k=8, log_fn=self.log, blocks=self.blocks, random_swap=hyperparams.random_swap)
+        self.wgan = WGAN(k=8, log_fn=self.log, blocks=self.blocks, random_swap=hyperparams.random_swap,
+                         add_gen_conv=hyperparams.add_gen_conv)
         if 'a' in hyperparams.model:
             self.processing_unit = AlphaProcessingUnit(self.blocks)
             self.decoder = AlphaDecoder(self.blocks)

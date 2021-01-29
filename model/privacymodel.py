@@ -47,17 +47,18 @@ class PrivacyModel(pl.LightningModule):
 
     def forward(self, x):
         I_prime = x if self.random_batch is None else self.random_batch  # TODO: set random batches accordingly for inference
+        self.random_batch = x
 
         thetas = PrivacyModel.thetas(x)
 
         # Encoder/GAN
-        xr, xi, _ = self.wgan.generator(x, I_prime, thetas)
+        xr, xi, _, thetas_add = self.wgan.generator(x, I_prime, thetas)
 
         # Processing Unit
         xr, xi = self.processing_unit(xr, xi)
 
         # Decoder
-        output = self.decoder(xr, xi, thetas)
+        output = self.decoder(xr, xi, thetas, thetas_add)
 
         return output
 
@@ -123,11 +124,19 @@ class PrivacyModel(pl.LightningModule):
         self.log("gradient_penalty", self.gradient_penalty)
 
     def on_load_checkpoint(self, checkpoint):
-        new_states = OrderedDict()
-        for key in checkpoint['state_dict']:
-            new_states[key.replace('processing_unit.layers', 'processing_unit.blocks')
-                          .replace('layer3', 'layers')] = checkpoint['state_dict'][key]
-        checkpoint['state_dict'] = new_states
+        #with open('correct_state_keys.txt', 'w') as f:
+        #    for key in checkpoint['state_dict']:
+        #        f.write(key + '\n')
+        #        print(key)
+        if any(a in self.hparams['model'] for a in ['32', '44', '56', '110']):
+            with open('pretrained_models/state_keys_' + self.hparams['model'] + '.txt', 'r') as f:
+                correct_keys = f.read().split('\n')
+            new_states = OrderedDict()
+            for correct_key, key in zip(correct_keys, checkpoint['state_dict']):
+                new_states[
+                    correct_key
+                ] = checkpoint['state_dict'][key]
+            checkpoint['state_dict'] = new_states
 
     def training_epoch_end(self, outputs: List[Any]) -> None:
         self.log_grads = True
@@ -151,3 +160,12 @@ class PrivacyModel(pl.LightningModule):
                 if params.grad is not None:
                     self.logger.experiment.add_histogram(name + " Gradients", params.grad, self.current_epoch)
             self.log_grads = False
+
+    def test_step(self, batch, batch_idx):
+        x, target = batch
+        self.random_batch = x
+        output = self(x)
+        return self.accuracy(output, target)
+
+    def test_epoch_end(self, outs):
+        self.log("test_accuracy", sum(outs) / len(outs))

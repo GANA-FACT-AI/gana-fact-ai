@@ -66,7 +66,7 @@ class Inversion(pl.LightningModule):
         """
         a = a / 2 + 0.5
         b = b / 2 + 0.5
-        return torch.mean(torch.abs(a-b))
+        return torch.mean(torch.norm(a-b))
 
     def test_step(self, batch, batch_idx):
         x, _ = batch

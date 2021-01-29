@@ -1,7 +1,7 @@
 from torch.utils.data import Subset, DataLoader
 from torchvision import datasets, transforms
-#from sklearn.model_selection import train_test_split
 import numpy as np
+
 
 def load_data(dataset, batch_size, num_workers, adversary=False):
     if dataset == 'mnist':
@@ -13,10 +13,12 @@ def load_data(dataset, batch_size, num_workers, adversary=False):
     elif dataset == 'cifar100':
         return  load_CIFAR100(batch_size, num_workers, adversary)
 
+
 def split_dataset(dataset, split=0.7):
     split = int(len(dataset)*split)
     first_idx, second_idx = np.split(np.arange(len(dataset)), [split])
     return Subset(dataset, first_idx), Subset(dataset, second_idx)
+
 
 def load_MNIST(batch_size, num_workers, adversary, path='datasets/MNIST/'):
     # Initilizes transform
@@ -42,6 +44,7 @@ def load_MNIST(batch_size, num_workers, adversary, path='datasets/MNIST/'):
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers, drop_last=True, pin_memory=True)
     return train_loader, test_loader
+
 
 def load_CelebA(batch_size, num_workers, adversary, path='datasets/CelebA/'):
     # Initilizes transform
@@ -70,6 +73,7 @@ def load_CelebA(batch_size, num_workers, adversary, path='datasets/CelebA/'):
                              num_workers=num_workers, drop_last=True, pin_memory=True)
     return train_loader, test_loader
 
+
 def load_CIFAR10(batch_size, num_workers, adversary, path='datasets/CIFAR10/'):
     # Initilizes transform
     transform = transforms.Compose([
@@ -94,6 +98,7 @@ def load_CIFAR10(batch_size, num_workers, adversary, path='datasets/CIFAR10/'):
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers, drop_last=True, pin_memory=True)
     return train_loader, test_loader
+
 
 def load_CIFAR100(batch_size, num_workers, adversary, path='datasets/CIFAR100/'):
     # Initilizes transform
