@@ -91,7 +91,7 @@ class UNet(nn.Module):
         self.out = nn.Conv2d(64, self.n_classes, kernel_size=1)
 
     def forward(self, x):
-        x = self.upsample(x)
+        #x = self.upsample(x)
         x1 = self.donw_conv_1(x)
         x2 = self.max_pool_2x2(x1)
         x3 = self.down_conv_2(x2)

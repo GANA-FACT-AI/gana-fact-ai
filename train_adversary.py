@@ -7,7 +7,8 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from adversary.Inversion import Inversion
 from adversary.inference import Inference
-from model.privacymodel import PrivacyModel
+#from model.privacymodel import PrivacyModel
+from resnet.resnet_privacy_model import ResNetPrivacyModel as PrivacyModel
 from adversary.angle_pred import AnglePred
 from datasets import load_data
 
@@ -67,6 +68,8 @@ if __name__ == '__main__':
     # Model hyperparameters
     parser.add_argument('--attack_model', default='inversion1', type=str,
                         help='What type of attack should be performed.')
+    parser.add_argument('--model', default='resnet20a', type=str,
+                        help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
 

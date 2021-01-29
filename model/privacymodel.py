@@ -11,6 +11,8 @@ from model.decoder import Decoder
 from model.processing_unit import ProcessingUnit
 from model.wgan import WGAN
 
+from collections import OrderedDict
+
 
 class PrivacyModel(pl.LightningModule):
     def __init__(self, hyperparams):
@@ -118,6 +120,13 @@ class PrivacyModel(pl.LightningModule):
         self.log("classifier_loss", self.loss)
         self.log("accuracy", self.last_accuracy)
         self.log("gradient_penalty", self.gradient_penalty)
+
+    def on_load_checkpoint(self, checkpoint):
+        new_states = OrderedDict()
+        for key in checkpoint['state_dict']:
+            new_states[key.replace('processing_unit.layers', 'processing_unit.blocks')
+                          .replace('layer3', 'layers')] = checkpoint['state_dict'][key]
+        checkpoint['state_dict'] = new_states
 
     def training_epoch_end(self, outputs: List[Any]) -> None:
         self.log_grads = True
