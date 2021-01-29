@@ -33,12 +33,17 @@ conda activate factai
 ## Reproducing Experiments
 For training a model use the following command
 ```console
-python train.py --model [MODEL] --progress_bar
+python train.py --model [MODEL] --dataset [DATASET] --progress_bar
 ```
 
-After the model is trained an adversary attack can executed by using the command:
+For training the angle predictor use the following command
 ```console
-python train_adverary.py --model [MODEL] --progress_bar
+python train_discriminator.py --model [MODEL] --dataset [DATASET] --progress_bar
+```
+
+For training the adversary use the following command
+```console
+python train_adversary.py --model [MODEL] --dataset [DATASET] --attack_model [ATTACK] --progress_bar
 ```
 
 ## References
