@@ -30,7 +30,7 @@ To then activate this environment use:
 conda activate factai
 ```
 
-## Reproducing Experiments
+## Training models
 For training a model use the following command
 ```console
 python train.py --model [MODEL] --dataset [DATASET] --progress_bar
@@ -45,6 +45,9 @@ For training the adversary use the following command
 ```console
 python train_adversary.py --model [MODEL] --dataset [DATASET] --attack_model [ATTACK] --progress_bar
 ```
+
+## Testing models / Reproducing results
+For testing the models you can use the provided notebook and use the instructions given there.
 
 ## References
 <a id="1">[1]</a> 
