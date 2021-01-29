@@ -11,6 +11,6 @@ class Generator(model.generator.Generator):
         layers.append(nn.BatchNorm2d(16))
         layers.append(nn.ReLU())
         layers.append(make_layers(BasicBlock, 16, 16, blocks, stride=1))
-        #if add_gen_conv:
-        #    layers.append(nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1, bias=False))
+        if add_gen_conv:
+            layers.append(nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1, bias=False))
         self.layers = nn.Sequential(*layers)
