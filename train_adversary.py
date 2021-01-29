@@ -43,15 +43,15 @@ def train(args):
     # Inversion attacks
     if args.attack_model == 'inversion1':
         angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred,
-                                                          privacy_model=privacy_model)
+                                                          privacy_model=privacy_model, strict=False)
         if args.checkpoint_adversary:
             adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model,
-                                                             discriminator=angle_pred_model)
+                                                             discriminator=angle_pred_model, strict=False)
         else:
             adversary_model = Inversion(privacy_model, angle_pred_model)
     elif args.attack_model == 'inversion2':
         if args.checkpoint_adversary:
-            adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model)
+            adversary_model = Inversion.load_from_checkpoint(args.checkpoint_adversary, privacy_model=privacy_model, strict=False)
         else:
             adversary_model = Inversion(privacy_model)
     # Inference attacks
@@ -61,7 +61,7 @@ def train(args):
     else:
         adversary_model = Inversion(privacy_model)
 
-    trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
+    #trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
     # Testing
     #model = model.load_from_checkpoint(trainer.checkpoint_callback.best_model_path)
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # Model hyperparameters
     parser.add_argument('--attack_model', default='inversion1', type=str,
                         help='What type of attack should be performed.')
-    parser.add_argument('--model', default='resnet20a', type=str,
+    parser.add_argument('--model', default='resnet110a', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--add_gen_conv', default=False, type=bool)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=100, type=int,
@@ -105,10 +106,10 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_95/checkpoints/epoch=23.ckpt', type=str)
-    parser.add_argument('--checkpoint_adversary', default=None, type=str)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_70/checkpoints/resnet-110-alpha-cifar10.ckpt', type=str)
+    parser.add_argument('--checkpoint_adversary', default='logs/inversion2/version_7/checkpoints/inversion2-resnet-110-alpha-cifar10.ckpt', type=str)
     parser.add_argument('--lambda_', default=10, type=int)
-    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
+    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_6/checkpoints/angle-resnet-110-alpha-cifar10.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
     parser.add_argument('--random_swap', default=False, type=bool)
 

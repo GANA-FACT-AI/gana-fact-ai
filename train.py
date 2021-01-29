@@ -41,7 +41,7 @@ def train(args):
         model = ResNetPrivacyModel.load_from_checkpoint(
             args.checkpoint, hyperparams=args)
 
-    trainer.fit(model, train_loader)
+    #trainer.fit(model, train_loader)
 
     # Testing
     trainer.test(model, test_dataloaders=test_loader, verbose=True)
@@ -53,12 +53,12 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Model hyperparameters
-    parser.add_argument('--model', default='resnet110b', type=str,
+    parser.add_argument('--model', default='resnet110a', type=str,
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
-    parser.add_argument('--checkpoint', default=None, type=str)
-    parser.add_argument('--add_gen_conv', default=True, type=bool)
+    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_70/checkpoints/resnet-110-alpha-cifar10.ckpt', type=str)
+    parser.add_argument('--add_gen_conv', default=False, type=bool)
 
 
 # Optimizer hyperparameters

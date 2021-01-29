@@ -42,7 +42,7 @@ class Inversion(pl.LightningModule):
         output = self(xr, xi)
         loss = self.loss(output, x)
 
-        self.log("reconstruction error", self.reconstruction_error(output, x))
+        #self.log("reconstruction error", self.reconstruction_error(output, x))
         self.log("image_reconstruction_loss", loss)
 
         return loss
@@ -59,6 +59,7 @@ class Inversion(pl.LightningModule):
         self.gen_img_number += 1
 
     @staticmethod
+    # We do not use the method below, it produced weird results
     def reconstruction_error(a, b):
         """
         Returns the official evaluation metric from the paper. Scales pixels between [0, 1]
@@ -70,21 +71,11 @@ class Inversion(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         x, _ = batch
-        I_prime = x if self.random_batch is None else self.random_batch
-        self.random_batch = x
-        self.plot_images(x, I_prime)
-        thetas = self.privacy_model.thetas(x)
-
-        with torch.no_grad():
-            xr, xi, a, _ = self.privacy_model.wgan.generator(x, I_prime, thetas)
-
-            output = self(xr, xi)
-
-        return self.reconstruction_error(output, x)
+        return self.training_step(batch, batch_idx)
 
     def test_epoch_end(self, outs):
         mean_reconstruction_error = sum(outs) / len(outs)
-        self.log("test_reconstruction_error", mean_reconstruction_error)
+        #self.log("test_reconstruction_error", mean_reconstruction_error)
 
     def validation_step(self, batch, batch_idx):
         x, _ = batch
