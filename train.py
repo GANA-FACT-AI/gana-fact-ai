@@ -7,6 +7,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from datasets import load_data
 from resnet.resnet_privacy_model import ResNetPrivacyModel
+from LeNet.privacymodel import PrivacyModel
 
 def train(args):
     os.makedirs(args.log_dir, exist_ok=True)
@@ -32,16 +33,22 @@ def train(args):
 
     pl.seed_everything(args.seed)  # To be reproducible
 
-    if 'resnet' in args.model:
-        model = ResNetPrivacyModel(args)
+    if not args.test:
+        # Training
+        if 'resnet' in args.model:
+            model = ResNetPrivacyModel(args)
+        else:
+            model = PrivacyModel()
+
+        trainer.fit(model, train_loader)
     else:
-        raise NotImplementedError
-
-    trainer.fit(model, train_loader)
-
-    # Testing
-    # model = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    # test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+        # Testing
+        if 'resnet' in args.model:
+            model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+        else:
+            model = PrivacyModel.load_from_checkpoint(args.checkpoint, strict=False)
+        test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+        # print("test_result", test_result)
 
 
 if __name__ == '__main__':
@@ -83,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_', default=10, type=int)
     parser.add_argument('--random_swap', default=False, type=bool)
     parser.add_argument('--checkpoint', default='logs/lightning_logs/version_67/checkpoints/epoch=303.ckpt', type=str)
+    parser.add_argument('--test', default=False, type=bool)
 
     args = parser.parse_args()
 

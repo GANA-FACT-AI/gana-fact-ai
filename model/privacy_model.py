@@ -37,6 +37,9 @@ class PrivacyModel(pl.LightningModule):
         self.crit_loss = None
         self.gen_loss = None
 
+        self.test_accuracy = 0
+        self.test_counter = 0
+
     @staticmethod
     def thetas(x):
         thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
@@ -113,12 +116,15 @@ class PrivacyModel(pl.LightningModule):
             {'optimizer': optimizer_crit, 'frequency': 5}
         )
 
-    def test_step(self, batch):
+    def test_step(self, batch, batch_idx):
         x, target = batch
         output = self.forward(x)
-        accuracy = self.accuracy(output, target)
-
-        return accuracy
+        self.test_accuracy += self.accuracy(output, target)
+        self.test_counter += 1
+        out = self.test_accuracy / self.test_counter
+        self.log("Test_Accuracy: ",  out)
+        self.log("Test_Clasification_Error", 1 - out)
+        return out
 
     def log_values(self):
         self.log("generator_loss", self.gen_loss)

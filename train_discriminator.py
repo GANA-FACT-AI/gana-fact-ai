@@ -33,17 +33,17 @@ def train(args):
     trainer.logger._default_hp_metric = None
 
     pl.seed_everything(args.seed)  # To be reproducible
-    if 'resnet' in args.model:
-        privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    if not args.test:
+        if 'resnet' in args.model:
+            privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+        else:
+            raise NotImplementedError
+        model = AnglePred(privacy_model)
+        trainer.fit(model, train_loader, val_dataloaders=test_loader)
     else:
-        raise NotImplementedError
-    model = AnglePred(privacy_model)
-
-    trainer.fit(model, train_loader, val_dataloaders=test_loader)
-
-    # Testing
-    # model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model)
-    # test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+        # Testing
+        model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model)
+        test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--predict_angle', default=True, type=bool)
     parser.add_argument('--lambda_', default=10, type=int)
     parser.add_argument('--random_swap', default=False, type=bool)
+    parser.add_argument('--test', default=False, type=bool)
 
     args = parser.parse_args()
 

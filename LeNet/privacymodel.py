@@ -22,6 +22,7 @@ class PrivacyModel(pl.LightningModule):
         self.accuracy = pl.metrics.Accuracy()
         self.test_accuracy = 0
         self.test_counter = 0
+
     @staticmethod
     def thetas(x):
         thetas = torch.rand(x.shape[0]).to(x.device) * 2 * math.pi
@@ -141,7 +142,6 @@ class PrivacyModel(pl.LightningModule):
         pass
 
     def test_step(self, batch, batch_idx):
-
         output = self.forward(batch)
         x, target = batch
         self.test_accuracy += self.accuracy(output, target)
