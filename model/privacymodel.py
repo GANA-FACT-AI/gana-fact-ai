@@ -128,7 +128,7 @@ class PrivacyModel(pl.LightningModule):
         #    for key in checkpoint['state_dict']:
         #        f.write(key + '\n')
         #        print(key)
-        if any(a in self.hparams['model'] for a in ['32', '44', '56', '110']):
+        if any(a in self.hparams['model'] for a in ['32', '44', '56', '110', 'lenet']):
             with open('pretrained_models/state_keys_' + self.hparams['model'] + '.txt', 'r') as f:
                 correct_keys = f.read().split('\n')
             new_states = OrderedDict()

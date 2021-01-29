@@ -4,7 +4,7 @@ import model.generator
 
 
 class Generator(model.generator.Generator):
-    def __init__(self, blocks, random_swap, add_gen_conv=True):
+    def __init__(self, blocks, random_swap, add_gen_conv=False):
         super().__init__(random_swap)
         layers = list()
         layers.append(nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False))

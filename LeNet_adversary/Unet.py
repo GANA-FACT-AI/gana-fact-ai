@@ -16,9 +16,9 @@ class Down(nn.Module):
             nn.ReLU(inplace=True)
         ])
         layers.extend([
-            nn.Conv2d(mid_channels, mid_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+                          nn.Conv2d(mid_channels, mid_channels, kernel_size=3, padding=1),
+                          nn.BatchNorm2d(out_channels),
+                          nn.ReLU(inplace=True)
                       ] * 4)
         layers.extend([
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1),
@@ -53,6 +53,7 @@ class Up(nn.Module):
         return x3
 
 
+
 def crop_image(tensor1, tensor2):
     input_size =  tensor1.shape[2]
     target_size = tensor2.shape[2]
@@ -61,14 +62,11 @@ def crop_image(tensor1, tensor2):
 
 
 class UNet(nn.Module):
-    def __init__(self, n_input_channels, n_output_channels, upsampling_enabled=False):
+    def __init__(self, n_input_channels, n_output_channels):
 
-        super(UNet, self).__init__()
+        super().__init__()
         self.n_channels = n_input_channels
         self.n_classes = n_output_channels
-
-        self.upsample = nn.Upsample(scale_factor=2)
-        self.upsampling_enabled = upsampling_enabled
 
         self.donw_conv_1 = Down(n_input_channels, 64, 32)
         self.down_conv_2 = Down(64, 128, 16)
@@ -83,6 +81,7 @@ class UNet(nn.Module):
             out_channels=512,
             stride=2,
             kernel_size=2)
+        self.upsample = nn.Upsample(scale_factor=2.3, mode='bilinear')
 
         self.up_1 = Up(1024, 512, 2)
         self.up_2 = Up(512, 256, 4)
@@ -92,9 +91,8 @@ class UNet(nn.Module):
         self.out = nn.Conv2d(64, self.n_classes, kernel_size=1)
 
     def forward(self, x):
-        if self.upsampling_enabled:
-            x = self.upsample(x)
-        x1 = self.donw_conv_1(x)
+        x0 = self.upsample(x)
+        x1 = self.donw_conv_1(x0)
         x2 = self.max_pool_2x2(x1)
         x3 = self.down_conv_2(x2)
         x4 = self.max_pool_2x2(x3)
