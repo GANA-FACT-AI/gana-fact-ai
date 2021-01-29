@@ -7,8 +7,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from adversary.angle_pred import AnglePred
 from datasets import load_data
-from resnet_alpha.privacymodel import PrivacyModel as ResNetA
-from resnet_beta.privacymodel import PrivacyModel as ResNetB
+from resnet.resnet_privacy_model import ResNetPrivacyModel
 
 
 def train(args):
@@ -35,17 +34,16 @@ def train(args):
 
     pl.seed_everything(args.seed)  # To be reproducible
     if 'resnet' in args.model:
-        if 'a' in args.model:
-            privacymodel = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
-        else:
-            privacymodel = ResNetB.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    model = AnglePred(privacymodel)
+        privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    else:
+        raise NotImplementedError
+    model = AnglePred(privacy_model)
 
-    #trainer.fit(model, train_loader, val_dataloaders=test_loader)
+    trainer.fit(model, train_loader, val_dataloaders=test_loader)
 
     # Testing
-    model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacymodel)
-    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    # model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model)
+    # test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -66,6 +64,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--beta1', default=0.5, type=float)
+    parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=40, type=int,
@@ -86,6 +86,8 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', default='logs/lightning_logs/version_67/checkpoints/epoch=303.ckpt', type=str)
     parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_2/checkpoints/epoch=39.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
+    parser.add_argument('--lambda_', default=10, type=int)
+    parser.add_argument('--random_swap', default=False, type=bool)
 
     args = parser.parse_args()
 

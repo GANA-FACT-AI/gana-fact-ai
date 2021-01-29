@@ -33,16 +33,15 @@ def train(args):
     pl.seed_everything(args.seed)  # To be reproducible
 
     if 'resnet' in args.model:
-        if 'a' in args.model:
-            model = ResNetPrivacyModel.load_from_checkpoint('checkpoints/resnet-56-alpha-cifar10.ckpt', hyperparams=args)
-        else:
-            model = ResNetPrivacyModel(args)
+        model = ResNetPrivacyModel(args)
+    else:
+        raise NotImplementedError
 
     trainer.fit(model, train_loader)
 
     # Testing
-    model = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
-    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    # model = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    # test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -66,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
-    parser.add_argument('--epochs', default=1000, type=int,
+    parser.add_argument('--epochs', default=150, type=int,
                         help='Max number of epochs')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')

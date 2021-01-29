@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import math
 import torch.nn as nn
-from resnet import make_layers, LayerNormBlock
+from resnet.resnet_blocks import make_layers, LayerNormBlock
 
 
 class AngleNet(nn.Module):

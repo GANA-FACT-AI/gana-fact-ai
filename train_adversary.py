@@ -7,8 +7,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from adversary.inversion import Inversion
 from adversary.inference import Inference
-from resnet_alpha.privacymodel import PrivacyModel as ResNetA
-from resnet_beta.privacymodel import PrivacyModel as ResNetB
+from resnet.resnet_privacy_model import ResNetPrivacyModel
 from adversary.angle_pred import AnglePred
 from datasets import load_data
 
@@ -39,33 +38,32 @@ def train(args):
 
     pl.seed_everything(args.seed)  # To be reproducible
     if 'resnet' in args.model:
-        if 'a' in args.model:
-            privacy_model = ResNetA.load_from_checkpoint(args.checkpoint, hyperparams=args)
-        else:
-            privacy_model = ResNetB.load_from_checkpoint(args.checkpoint, hyperparams=args)
+        privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args)
+    else:
+        raise NotImplementedError
 
     # Inversion attacks
     if args.attack_model == 'inversion1':
         angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred,
-                                                                privacy_model=privacy_model)
+                                                            privacy_model=privacy_model)
         adversary_model = Inversion(privacy_model, angle_pred_model)
     elif args.attack_model == 'inversion2':
         adversary_model = Inversion(privacy_model)
 
     # Inference attacks
     elif args.attack_model == 'inference1':
-        # angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred, 
-        #                                                         privacy_model=privacy_model)
-        # inversion_model = Inversion.load_from_checkpoint(args.checkpoint_inversion, 
-        #                                                     privacy_model=privacy_model, 
-        #                                                     angle_pred_model=angle_pred_model)
-        adversary_model = Inference(args.dataset)
-    
-    #trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
+        angle_pred_model = AnglePred.load_from_checkpoint(args.checkpoint_angle_pred,
+                                                            privacy_model=privacy_model)
+        inversion_model = Inversion.load_from_checkpoint(args.checkpoint_inversion1,
+                                                            privacy_model=privacy_model,
+                                                            discriminator=angle_pred_model)
+        adversary_model = Inference(args.dataset, inversion=inversion_model)
+     
+    trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
 
     #Testing
-    model = Inversion.load_from_checkpoint(args.checkpoint_inversion1, privacy_model=privacy_model, discriminator=angle_pred_model)
-    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    # model = Inversion.load_from_checkpoint(args.checkpoint_inversion1, privacy_model=privacy_model, discriminator=angle_pred_model)
+    # test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -88,6 +86,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Minibatch size')
+    parser.add_argument('--beta1', default=0.5, type=float)
+    parser.add_argument('--beta2', default=0.999, type=float)
 
     # Other hyperparameters
     parser.add_argument('--epochs', default=30, type=int,
@@ -108,6 +108,8 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', default='logs/lightning_logs/version_70/checkpoints/epoch=881.ckpt', type=str)
     parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_6/checkpoints/epoch=39.ckpt', type=str)
     parser.add_argument('--checkpoint_inversion1', default='logs/inversion1/version_9/checkpoints/epoch=29.ckpt', type=str)
+    parser.add_argument('--lambda_', default=10, type=int)
+    parser.add_argument('--random_swap', default=False, type=bool)
 
     args = parser.parse_args()
 
