@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from adversary.inversion import Inversion
+from adversary.Inversion import Inversion
 from adversary.inference import Inference
 from resnet.resnet_privacy_model import ResNetPrivacyModel
 from adversary.angle_pred import AnglePred
