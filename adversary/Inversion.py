@@ -36,7 +36,7 @@ class Inversion(pl.LightningModule):
         thetas = self.privacy_model.thetas(x)
 
         with torch.no_grad():
-            xr, xi, a, theta_add = self.privacy_model.wgan.generator(x, I_prime, thetas)
+            xr, xi, a, _ = self.privacy_model.wgan.generator(x, I_prime, thetas)
             if self.discriminator is not None:
                 xr, xi = self.discriminator(xr, xi)
         output = self(xr, xi)

@@ -28,7 +28,7 @@ class AnglePred(pl.LightningModule):
         thetas = self.privacy_model.thetas(x)
 
         with torch.no_grad():
-            xr, xi, a = self.privacy_model.wgan.generator(x, I_prime, thetas)
+            xr, xi, a, _ = self.privacy_model.wgan.generator(x, I_prime, thetas)
 
         angle = self.angle_net(torch.cat((xr, xi), 1))
 

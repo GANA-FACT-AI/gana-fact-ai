@@ -31,15 +31,8 @@ def train(args):
                          limit_val_batches=args.limit_val_batches,
                          )
     trainer.logger._default_hp_metric = None
-
     pl.seed_everything(args.seed)  # To be reproducible
 
-    if 'resnet' in args.model:
-        model = ResNetPrivacyModel(hyperparams=args)
-    elif 'lenet' in args.model:
-        model = LeNetPrivacyModel(hyperparams=args)
-    else:
-        raise NotImplementedError
     if args.checkpoint:
         if 'resnet' in args.model:
             model = ResNetPrivacyModel.load_from_checkpoint(
@@ -47,10 +40,13 @@ def train(args):
         if 'lenet' in args.model:
             model = LeNetPrivacyModel.load_from_checkpoint(
                 args.checkpoint, hyperparams=args, strict=False)
+    else:
+        if 'resnet' in args.model:
+            model = ResNetPrivacyModel(hyperparams=args)
+        else:
+            model = LeNetPrivacyModel(hyperparams=args)
 
     trainer.fit(model, train_loader)
-
-    # Testing
     trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
@@ -64,11 +60,11 @@ if __name__ == '__main__':
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
-    parser.add_argument('--checkpoint', default=None, type=str)
     parser.add_argument('--add_gen_conv', default=False, type=bool)
+    parser.add_argument('--checkpoint', default=None, type=str)
 
 
-# Optimizer hyperparameters
+    # Optimizer hyperparameters
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--lr_crit', default=1e-4, type=float)
     parser.add_argument('--lr_model', default=1e-3, type=float)

@@ -38,8 +38,8 @@ def train(args):
                          val_check_interval=0.20
                          )
     trainer.logger._default_hp_metric = None
-
     pl.seed_everything(args.seed)  # To be reproducible
+
     if args.model == 'lenet':
         privacy_model = LeNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
     else:
@@ -47,7 +47,6 @@ def train(args):
     args.unet_in_features = 6 if args.model == 'lenet' else 32
     args.upsampling_enabled = True if args.model == 'lenet' else False
 
-    # Inversion attacks
     if args.attack_model == 'inversion1':
         if args.model == 'lenet':
             angle_pred_model = AnglePredLeNet.load_from_checkpoint(args.checkpoint_angle_pred,
@@ -86,8 +85,6 @@ def train(args):
                                             upsampling_enabled=args.upsampling_enabled)
 
     trainer.fit(adversary_model, train_loader, val_dataloaders=test_loader)
-
-    # Testing
     trainer.test(adversary_model, test_dataloaders=test_loader, verbose=True)
 
 
@@ -102,9 +99,11 @@ if __name__ == '__main__':
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
+    parser.add_argument('--checkpoint', default=None, type=str)
+    parser.add_argument('--checkpoint_angle_pred', default=None, type=str)
+    parser.add_argument('--checkpoint_adversary', default=None, type=str)
 
-
-# Optimizer hyperparameters
+    # Optimizer hyperparameters
     parser.add_argument('--lr_model', default=1e-3, type=float)
     parser.add_argument('--lr_gen', default=1e-4, type=float)
     parser.add_argument('--beta1', default=0.5, type=float)
@@ -130,10 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', default=False, type=bool,
                         help='Shorten epochs and epoch lengths for quick debugging')
     parser.add_argument('--plot_graph', default=False, type=bool)
-    parser.add_argument('--checkpoint', default='logs/lightning_logs/version_95/checkpoints/epoch=23.ckpt', type=str)
-    parser.add_argument('--checkpoint_adversary', default=None, type=str)
     parser.add_argument('--lambda_', default=10, type=int)
-    parser.add_argument('--checkpoint_angle_pred', default='logs/angle_predictor/version_5/checkpoints/epoch=39.ckpt', type=str)
     parser.add_argument('--predict_angle', default=True, type=bool)
     parser.add_argument('--random_swap', default=False, type=bool)
 

@@ -34,24 +34,26 @@ def train(args):
                          val_check_interval=0.20
                          )
     trainer.logger._default_hp_metric = None
-
     pl.seed_everything(args.seed)  # To be reproducible
+
     if args.model == 'lenet':
         privacy_model = LeNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
-        model = AnglePredLeNet(privacy_model)
     else:
         privacy_model = ResNetPrivacyModel.load_from_checkpoint(args.checkpoint, hyperparams=args, strict=False)
-        model = AnglePredResNet(privacy_model)
-    
+        
+    if args.checkpoint_angle_pred:
+        if args.model == 'lenet':
+            model = AnglePredLeNet.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model, strict=False)
+        else:
+            model = AnglePredResNet.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model, strict=False)
+    else:
+        if args.model == 'lenet':
+            model = AnglePredLeNet(privacy_model)
+        else:
+            model = AnglePredResNet(privacy_model)
 
     trainer.fit(model, train_loader, val_dataloaders=test_loader)
-
-    # Testing
-    if args.model == 'lenet':
-        model = AnglePredLeNet.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model, strict=False)
-    else:
-        model = AnglePredResNet.load_from_checkpoint(args.checkpoint_angle_pred, privacy_model=privacy_model, strict=False)
-    test_result = trainer.test(model, test_dataloaders=test_loader, verbose=True)
+    trainer.test(model, test_dataloaders=test_loader, verbose=True)
 
 
 if __name__ == '__main__':
@@ -64,9 +66,9 @@ if __name__ == '__main__':
                         help='Choose the model.')
     parser.add_argument('--dataset', default='cifar10', type=str,
                         help='Dataset to train the model on.')
-    parser.add_argument('--checkpoint',
-                        default='logs/lightning_logs/version_70/checkpoints/resnet-110-alpha-cifar10.ckpt', type=str)
     parser.add_argument('--add_gen_conv', default=False, type=bool)
+    parser.add_argument('--checkpoint', default=None, type=str)
+    parser.add_argument('--checkpoint_angle_pred', default=None, type=str)
 
     # Optimizer hyperparameters
     parser.add_argument('--lr_gen', default=1e-4, type=float)
@@ -95,9 +97,6 @@ if __name__ == '__main__':
     parser.add_argument('--plot_graph', default=False, type=bool)
     parser.add_argument('--lambda_', default=10, type=int)
     parser.add_argument('--random_swap', default=False, type=bool)
-    parser.add_argument('--checkpoint_angle_pred',
-                        default='logs/angle_predictor/version_6/checkpoints/angle-resnet-110-alpha-cifar10.ckpt',
-                        type=str)
 
     args = parser.parse_args()
 
