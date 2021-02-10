@@ -20,6 +20,9 @@ The following datasets will be downloaded automatically when running the code (s
 For testing the VGG-16 network the following dataset needs to be downloaded manually, which requires 1.1GB of available disk space:
 * CUB-200 (1.1GB) - http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz
 
+## Pretrained Models
+Pretrained models for our experiments are available via this Google Drive folder: https://drive.google.com/drive/folders/1kHFsf91qUI1Ob9jz7YrxuHeqVjIJgDiO?usp=sharing
+
 ## Installing Environment
 To install the environment in Anaconda use the following command:
 ```console
